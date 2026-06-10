@@ -554,7 +554,7 @@ function RatingSection({ existingRating }) {
             {[1, 2, 3, 4, 5].map((s) => (
               <span
                 key={s}
-                className={`text-3xl ${s <= selected ? "text-secondary" : "text-border"}`}
+                className={`text-3xl ${s <= selected ? "text-secondary" : "text-gray-300"}`}
               >
                 ★
               </span>
@@ -585,7 +585,7 @@ function RatingSection({ existingRating }) {
                   className={
                     star <= (hovered || selected)
                       ? "text-secondary"
-                      : "text-border"
+                      : "text-gray-300"
                   }
                 >
                   ★
@@ -613,7 +613,7 @@ function RatingSection({ existingRating }) {
           <button
             onClick={() => selected > 0 && setSubmitted(true)}
             disabled={!selected}
-            className="bg-secondary text-primary-dark rounded-xl px-6 py-2.5 text-sm font-bold hover:bg-secondary-light transition-colors disabled:opacity-40"
+            className="bg-primary text-white rounded-xl px-6 py-2.5 text-sm font-bold hover:bg-primary-light transition-colors disabled:opacity-40"
           >
             Submit Rating
           </button>
