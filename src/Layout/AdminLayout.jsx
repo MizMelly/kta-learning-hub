@@ -1,23 +1,25 @@
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
 import AdminSidebar from "../components/admin/AdminSidebar";
 import AdminHeader from "../components/admin/AdminHeader";
-import { Outlet } from "react-router-dom";
 
-const AdminLayout = () => {
+export default function AdminLayout() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <div className="flex min-h-screen bg-[#F6F7FB]">
+    <div className="flex h-screen bg-background">
+      <AdminSidebar
+        isOpen={isOpen}
+        setIsOpen={setIsOpen}
+      />
 
-      <AdminSidebar />
+      <div className="flex-1 overflow-x-hidden">
+        <AdminHeader setIsOpen={setIsOpen} />
 
-      <div className="flex-1 flex flex-col">
-        <AdminHeader />
-
-        <main className="flex-1 px-10 py-8 overflow-y-auto">
+        <main>
           <Outlet />
         </main>
       </div>
-
     </div>
   );
-};
-
-export default AdminLayout;
+}

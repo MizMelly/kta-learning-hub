@@ -5,13 +5,15 @@ import {
   FileText,
   NotebookPen,
   MessageSquare,
+  GraduationCap,
+  X,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 
 const links = [
   {
     name: "Dashboard",
-    path: "/admin",
+    path: "/",
     icon: <LayoutDashboard size={20} />,
   },
   {
@@ -41,38 +43,106 @@ const links = [
   },
 ];
 
-const AdminSidebar = () => {
+export default function AdminSidebar({
+  isOpen,
+  setIsOpen,
+}) {
   return (
-    <div className="w-72 bg-[#0A2342] text-white p-6">
+    <>
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 lg:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
 
-      <h1 className="text-3xl font-bold mb-10">
-        🎓 KTA Hub
-      </h1>
+      <aside
+        className={`
+          fixed lg:relative
+          top-0 left-0
+          z-50
+          h-screen
+          w-67.5
+          bg-sidebar
+          text-sidebar-foreground
+          flex flex-col
+          transition-transform duration-300
+          ${
+            isOpen
+              ? "translate-x-0"
+              : "-translate-x-full lg:translate-x-0"
+          }
+        `}
+      >
+        {/* Mobile Close Button */}
+        <div className="lg:hidden flex justify-end p-4">
+          <button onClick={() => setIsOpen(false)}>
+            <X size={24} />
+          </button>
+        </div>
 
-      <p className="text-gray-400 uppercase text-sm mb-4">
-        Management
-      </p>
+        {/* Logo */}
+        <div className="px-5 py-4 flex items-center gap-3">
+          <div className="h-10 w-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
+            <GraduationCap
+              size={20}
+              className="text-sidebar-primary-foreground"
+            />
+          </div>
 
-      <div className="space-y-2">
-        {links.map((link) => (
-          <NavLink
-            key={link.path}
-            to={link.path}
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-5 py-4 rounded-2xl transition ${
-                isActive
-                  ? "bg-[#F4A41D] text-black"
-                  : "hover:bg-[#16395E]"
-              }`
-            }
-          >
-            {link.icon}
-            {link.name}
-          </NavLink>
-        ))}
-      </div>
-    </div>
+          <h1 className="text-xl font-semibold">
+            KTA Hub
+          </h1>
+        </div>
+
+        {/* Label */}
+        <div className="px-6 py-3">
+          <p className="text-xs uppercase tracking-wider text-slate-400">
+            Management
+          </p>
+        </div>
+
+        {/* Navigation */}
+        <nav className="px-3 space-y-1">
+          {links.map((link) => (
+            <NavLink
+              key={link.path}
+              to={link.path}
+              end={link.path === "/admin"}
+              className={({ isActive }) =>
+                `flex items-center gap-3 px-4 py-3 rounded-2xl transition ${
+                  isActive
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "hover:bg-sidebar-accent"
+                }`
+              }
+              onClick={() => setIsOpen(false)}
+            >
+              {link.icon}
+              {link.name}
+            </NavLink>
+          ))}
+        </nav>
+
+        {/* User */}
+        <div className="mt-auto border-t border-sidebar-border p-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-sidebar-accent flex items-center justify-center font-semibold">
+              AD
+            </div>
+
+            <div>
+              <p className="font-medium">
+                Admin User
+              </p>
+
+              <p className="text-xs text-slate-400">
+                admin@ktahub.com
+              </p>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </>
   );
-};
-
-export default AdminSidebar;
+}
