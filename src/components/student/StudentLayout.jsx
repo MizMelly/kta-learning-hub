@@ -1,69 +1,187 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Menu,
+  X,
+  LogOut,
+} from "lucide-react";
 import { currentStudent } from "../../data/mockData";
 
 const navItems = [
-  { to: "/student/dashboard", label: "Dashboard", icon: "⊞" },
-  { to: "/student/courses", label: "My Courses", icon: "📚" },
+  {
+    to: "/student/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    to: "/student/courses",
+    label: "My Courses",
+    icon: BookOpen,
+  },
 ];
 
 export default function StudentLayout() {
-  const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen flex bg-background">
-      {/* Sidebar */}
-      <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col fixed top-0 left-0 h-full z-20">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-6 py-6 border-b border-white/10">
-          <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center text-xl">
+    <div className="min-h-screen bg-slate-50">
+      {/* Mobile Top Bar */}
+      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0F2D52] to-[#1E4A7A] flex items-center justify-center text-white font-bold shadow-md">
             🎓
           </div>
+
           <div>
-            <h1 className="text-lg font-bold leading-none">KTA Hub</h1>
-            <p className="text-white/50 text-xs mt-0.5">Learning Platform</p>
+            <h1 className="font-bold text-[#0F2D52]">
+              KTA Hub
+            </h1>
+
+            <p className="text-xs text-gray-400">
+              Learning Platform
+            </p>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-4 py-6 space-y-1">
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                  isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "hover:bg-sidebar-accent"
-                }`
-              }
-            >
-              <span className="text-base">{item.icon}</span>
-              {item.label}
-            </NavLink>
-          ))}
+        <button
+          onClick={() =>
+            setSidebarOpen(!sidebarOpen)
+          }
+          className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-white"
+        >
+          {sidebarOpen ? (
+            <X size={20} />
+          ) : (
+            <Menu size={20} />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/40 z-40"
+          onClick={() =>
+            setSidebarOpen(false)
+          }
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={`
+        fixed
+        top-0
+        left-0
+        h-full
+        w-72
+        bg-[#0F2D52]
+        text-white
+        z-50
+        transform
+        transition-transform
+        duration-300
+        shadow-2xl
+
+        ${
+          sidebarOpen
+            ? "translate-x-0"
+            : "-translate-x-full"
+        }
+
+        lg:translate-x-0
+        lg:flex
+        lg:flex-col
+      `}
+      >
+        {/* Logo */}
+        <div className="px-6 py-6 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E79B23] to-amber-400 flex items-center justify-center shadow-lg">
+              🎓
+            </div>
+
+            <div>
+              <h1 className="text-xl font-bold">
+                KTA Hub
+              </h1>
+
+              <p className="text-xs text-white/60">
+                Learning Platform
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-6 space-y-2">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() =>
+                  setSidebarOpen(false)
+                }
+                className={({ isActive }) =>
+                  `
+                  flex
+                  items-center
+                  gap-3
+                  px-4
+                  py-3
+                  rounded-2xl
+                  transition-all
+                  font-medium
+
+                  ${
+                    isActive
+                      ? "bg-[#E79B23] text-white shadow-lg"
+                      : "hover:bg-white/10 text-white/80"
+                  }
+                `
+                }
+              >
+                <Icon size={20} />
+                {item.label}
+              </NavLink>
+            );
+          })}
         </nav>
 
-        {/* Student profile footer */}
-        <div className="border-t border-sidebar-border">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-secondary flex items-center justify-center text-primary font-bold text-sm flex-shrink-0">
-              {currentStudent.name.charAt(0)}
+        {/* Student Profile */}
+        <div className="border-t border-white/10 p-4">
+          <div className="bg-white/5 rounded-2xl p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#E79B23] to-amber-400 flex items-center justify-center text-[#0F2D52] font-bold">
+                {currentStudent.name.charAt(0)}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <p className="font-medium truncate">
+                  {currentStudent.name}
+                </p>
+
+                <p className="text-xs text-white/50 truncate">
+                  {currentStudent.email}
+                </p>
+              </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-white truncate">
-                {currentStudent.name}
-              </p>
-              <p className="text-xs text-white/40 truncate">
-                {currentStudent.email}
-              </p>
-            </div>
+
+            <button className="mt-4 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition">
+              <LogOut size={16} />
+              Logout
+            </button>
           </div>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="flex-1 ml-64 min-h-screen">
+      {/* Main Content */}
+      <main className="lg:ml-72 min-h-screen">
         <Outlet />
       </main>
     </div>
