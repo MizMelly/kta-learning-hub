@@ -1,6 +1,5 @@
 import { Routes, Route } from "react-router-dom";
 
-// Admin (her side - don't touch)
 import AdminLayout from "./layout/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Courses from "./pages/admin/Courses";
@@ -28,15 +27,18 @@ function App() {
         <Route path="admin/discussions" element={<Discussions />} />
       </Route>
 
-      {/* Student routes */}
+
+      {/* Student routes with sidebar */}
       <Route path="/student" element={<StudentLayout />}>
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="courses" element={<MyCourses />} />
-        <Route
-          path="courses/:courseId/lessons/:lessonId"
-          element={<LessonPage />}
-        />
       </Route>
+
+      {/* Lesson page — full screen */}
+      <Route
+        path="/student/courses/:courseId/lessons/:lessonId"
+        element={<LessonPage />}
+      />
     </Routes>
   );
 }
