@@ -8,7 +8,7 @@ import Submissions from "./pages/admin/Submissions";
 import Reflections from "./pages/admin/Reflections";
 import Discussions from "./pages/admin/Discussions";
 
-
+// Student (your side)
 import StudentLayout from "./components/student/StudentLayout";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import MyCourses from "./pages/student/MyCourses";
@@ -27,15 +27,18 @@ function App() {
         <Route path="admin/discussions" element={<Discussions />} />
       </Route>
 
-      {/* Student routes */}
+
+      {/* Student routes with sidebar */}
       <Route path="/student" element={<StudentLayout />}>
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="courses" element={<MyCourses />} />
-        <Route
-          path="courses/:courseId/lessons/:lessonId"
-          element={<LessonPage />}
-        />
       </Route>
+
+      {/* Lesson page — full screen */}
+      <Route
+        path="/student/courses/:courseId/lessons/:lessonId"
+        element={<LessonPage />}
+      />
     </Routes>
   );
 }
