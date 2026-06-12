@@ -1,4 +1,4 @@
-import {  MoreVertical } from "lucide-react";
+import { MoreVertical } from "lucide-react";
 
 export default function Students() {
   const students = [
@@ -58,16 +58,18 @@ export default function Students() {
     <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
       {/* Header */}
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold">Student Management</h1>
+        <h1 className="text-3xl md:text-4xl font-bold">
+          Student Management
+        </h1>
         <p className="mt-2 text-muted-foreground">
           View students, their enrollments and progress.
         </p>
       </div>
 
-      {/* Table Card */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+      {/* ================= DESKTOP TABLE ================= */}
+      <div className="hidden lg:block overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-200">
+          <table className="w-full">
             <thead className="bg-muted border-b border-border">
               <tr>
                 <th className="text-left px-6 py-4 text-sm font-semibold">
@@ -94,7 +96,6 @@ export default function Students() {
                   key={student.id}
                   className="border-b last:border-none border-border"
                 >
-                  {/* Student */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
@@ -109,12 +110,10 @@ export default function Students() {
                     </div>
                   </td>
 
-                  {/* Joined */}
                   <td className="px-6 py-4 text-muted-foreground">
                     {student.joined}
                   </td>
 
-                  {/* Enrollments */}
                   <td className="px-6 py-4">
                     <div className="flex flex-wrap gap-2">
                       {student.enrollments.map((course, i) => (
@@ -128,7 +127,6 @@ export default function Students() {
                     </div>
                   </td>
 
-                  {/* Progress */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-28 h-2 bg-muted rounded-full overflow-hidden">
@@ -143,7 +141,6 @@ export default function Students() {
                     </div>
                   </td>
 
-                  {/* Actions */}
                   <td className="px-6 py-4 text-right">
                     <button className="p-2 rounded-lg hover:bg-muted">
                       <MoreVertical size={18} />
@@ -154,6 +151,75 @@ export default function Students() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* ================= MOBILE / TABLET CARDS ================= */}
+      <div className="grid gap-4 lg:hidden">
+        {students.map((student) => (
+          <div
+            key={student.id}
+            className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex gap-3">
+                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
+                  {getInitials(student.name)}
+                </div>
+
+                <div>
+                  <h3 className="font-semibold">{student.name}</h3>
+                  <p className="text-sm text-muted-foreground break-all">
+                    {student.email}
+                  </p>
+                </div>
+              </div>
+
+              <button className="p-2 rounded-lg hover:bg-muted">
+                <MoreVertical size={18} />
+              </button>
+            </div>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Joined
+                </p>
+                <p className="text-sm">{student.joined}</p>
+              </div>
+
+              <div>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Enrollments
+                </p>
+
+                <div className="flex flex-wrap gap-2">
+                  {student.enrollments.map((course, i) => (
+                    <span
+                      key={i}
+                      className="text-xs px-3 py-1 rounded-full bg-muted"
+                    >
+                      {course}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="flex justify-between text-sm mb-2">
+                  <span>Progress</span>
+                  <span>{student.progress}%</span>
+                </div>
+
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-primary"
+                    style={{ width: `${student.progress}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
