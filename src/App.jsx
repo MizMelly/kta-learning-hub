@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 
+import Landing from "./components/Landing";
 import AdminLayout from "./Layout/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Courses from "./pages/admin/Courses";
@@ -17,8 +18,10 @@ import LessonPage from "./pages/student/LessonPage";
 function App() {
   return (
     <Routes>
+        <Route path="/" element={<Landing />} />
+
       {/* Admin routes */}
-      <Route path="/" element={<AdminLayout />}>
+      <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
         <Route path="admin/courses" element={<Courses />} />
         <Route path="admin/students" element={<Students />} />
