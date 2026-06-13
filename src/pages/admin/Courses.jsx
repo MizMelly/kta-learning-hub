@@ -1,8 +1,11 @@
+import { useState } from "react";
 import socialMediaImage from "../../assets/social-media.avif";
 import brandStorytellingImage from "../../assets/brand-stroytelling.avif";
 import { Pencil, Trash2, Star, Plus } from "lucide-react";
 
 export default function Courses() {
+  const [showModal, setShowModal] = useState(false);
+
   const courses = [
     {
       id: 1,
@@ -46,7 +49,10 @@ export default function Courses() {
           </p>
         </div>
 
-        <button className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-medium text-primary-foreground shadow-sm transition hover:opacity-90">
+        <button
+          onClick={() => setShowModal(true)}
+          className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+        >
           <Plus size={18} />
           New Course
         </button>
@@ -59,7 +65,6 @@ export default function Courses() {
             key={course.id}
             className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:shadow-md"
           >
-            {/* Image */}
             <div className="relative h-40 overflow-hidden sm:h-44 md:h-48">
               <img
                 src={course.image}
@@ -78,7 +83,6 @@ export default function Courses() {
               </span>
             </div>
 
-            {/* Content */}
             <div className="space-y-4 p-4 sm:p-5">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <h2 className="text-lg font-semibold text-foreground sm:text-xl">
@@ -96,15 +100,10 @@ export default function Courses() {
 
               <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
                 <span>{course.modules} modules</span>
-
                 <span>{course.lessons} lessons</span>
 
                 <div className="flex items-center gap-1">
-                  <Star
-                    size={14}
-                    fill="currentColor"
-                    className="text-yellow-500"
-                  />
+                  <Star size={14} fill="currentColor" className="text-yellow-500" />
                   <span>{course.rating}</span>
                 </div>
 
@@ -128,6 +127,103 @@ export default function Courses() {
           </div>
         ))}
       </div>
+
+      {/* MODAL */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+            {/* Header */}
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-2xl font-bold">Create Course</h2>
+
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-2xl text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Form */}
+            <form className="space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Course Title
+                </label>
+
+                <input
+                  type="text"
+                  placeholder="e.g. Social Media Masterclass"
+                  className="w-full rounded-lg border p-3"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Description
+                </label>
+
+                <textarea
+                  rows="4"
+                  placeholder="Enter course description..."
+                  className="w-full rounded-lg border p-3"
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <label className="mb-2 block text-sm font-medium">
+                    Instructor
+                  </label>
+
+                  <input
+                    type="text"
+                    placeholder="Instructor name"
+                    className="w-full rounded-lg border p-3"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm font-medium">
+                    Price ($)
+                  </label>
+
+                  <input
+                    type="number"
+                    placeholder="0"
+                    className="w-full rounded-lg border p-3"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Course Thumbnail
+                </label>
+
+                <input type="file" className="w-full rounded-lg border p-3" />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowModal(false)}
+                  className="rounded-lg border px-5 py-2"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="submit"
+                  className="rounded-lg bg-primary px-5 py-2 text-primary-foreground"
+                >
+                  Create Course
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
