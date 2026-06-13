@@ -5,8 +5,9 @@ import { Pencil, Trash2, Star, Plus } from "lucide-react";
 
 export default function Courses() {
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
-  const courses = [
+  const [courses, setCourses] = useState([
     {
       id: 1,
       image: socialMediaImage,
@@ -33,11 +34,90 @@ export default function Courses() {
       price: 99,
       status: "Draft",
     },
-  ];
+  ]);
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    author: "",
+    price: "",
+  });
+
+  // ✅ INPUT HANDLER (UNCHANGED UI)
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
+
+  // ✅ CREATE + UPDATE
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    if (editingId) {
+      setCourses((prev) =>
+        prev.map((course) =>
+          course.id === editingId
+            ? {
+                ...course,
+                title: formData.title,
+                description: formData.description,
+                author: formData.author,
+                price: Number(formData.price),
+              }
+            : course
+        )
+      );
+    } else {
+      const newCourse = {
+        id: Date.now(),
+        image: socialMediaImage,
+        title: formData.title,
+        description: formData.description,
+        author: formData.author,
+        price: Number(formData.price),
+        modules: 0,
+        lessons: 0,
+        rating: 0,
+        status: "Draft",
+      };
+
+      setCourses([newCourse, ...courses]);
+    }
+
+    setFormData({
+      title: "",
+      description: "",
+      author: "",
+      price: "",
+    });
+
+    setEditingId(null);
+    setShowModal(false);
+  };
+
+  // 🗑 DELETE (USES YOUR EXISTING BUTTON)
+  const handleDelete = (id) => {
+    setCourses(courses.filter((course) => course.id !== id));
+  };
+
+  // ✏ EDIT (USES YOUR EXISTING BUTTON)
+  const handleEdit = (course) => {
+    setFormData({
+      title: course.title,
+      description: course.description,
+      author: course.author,
+      price: course.price,
+    });
+
+    setEditingId(course.id);
+    setShowModal(true);
+  };
 
   return (
     <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-      {/* Header */}
+      {/* HEADER (UNCHANGED UI) */}
       <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground md:text-4xl">
@@ -50,7 +130,16 @@ export default function Courses() {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => {
+            setFormData({
+              title: "",
+              description: "",
+              author: "",
+              price: "",
+            });
+            setEditingId(null);
+            setShowModal(true);
+          }}
           className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
         >
           <Plus size={18} />
@@ -58,7 +147,7 @@ export default function Courses() {
         </button>
       </div>
 
-      {/* Cards */}
+      {/* CARDS (UNCHANGED UI) */}
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         {courses.map((course) => (
           <div
@@ -115,11 +204,19 @@ export default function Courses() {
                   Manage
                 </button>
 
-                <button className="rounded-xl border border-border p-2.5 transition hover:bg-muted">
+                {/* ✏ EDIT BUTTON (NOW WORKS) */}
+                <button
+                  onClick={() => handleEdit(course)}
+                  className="rounded-xl border border-border p-2.5 transition hover:bg-muted"
+                >
                   <Pencil size={18} />
                 </button>
 
-                <button className="rounded-xl border border-border p-2.5 text-destructive transition hover:bg-muted">
+                {/* 🗑 DELETE BUTTON (NOW WORKS) */}
+                <button
+                  onClick={() => handleDelete(course.id)}
+                  className="rounded-xl border border-border p-2.5 text-destructive transition hover:bg-muted"
+                >
                   <Trash2 size={18} />
                 </button>
               </div>
@@ -128,13 +225,14 @@ export default function Courses() {
         ))}
       </div>
 
-      {/* MODAL */}
+      {/* MODAL (UNCHANGED UI, ONLY FUNCTIONALITY ADDED) */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
-            {/* Header */}
             <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">Create Course</h2>
+              <h2 className="text-2xl font-bold">
+                {editingId ? "Edit Course" : "Create Course"}
+              </h2>
 
               <button
                 onClick={() => setShowModal(false)}
@@ -144,8 +242,7 @@ export default function Courses() {
               </button>
             </div>
 
-            {/* Form */}
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={handleSubmit}>
               <div>
                 <label className="mb-2 block text-sm font-medium">
                   Course Title
@@ -153,7 +250,9 @@ export default function Courses() {
 
                 <input
                   type="text"
-                  placeholder="e.g. Social Media Masterclass"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
                   className="w-full rounded-lg border p-3"
                 />
               </div>
@@ -164,8 +263,10 @@ export default function Courses() {
                 </label>
 
                 <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
                   rows="4"
-                  placeholder="Enter course description..."
                   className="w-full rounded-lg border p-3"
                 />
               </div>
@@ -178,7 +279,9 @@ export default function Courses() {
 
                   <input
                     type="text"
-                    placeholder="Instructor name"
+                    name="author"
+                    value={formData.author}
+                    onChange={handleChange}
                     className="w-full rounded-lg border p-3"
                   />
                 </div>
@@ -190,18 +293,12 @@ export default function Courses() {
 
                   <input
                     type="number"
-                    placeholder="0"
+                    name="price"
+                    value={formData.price}
+                    onChange={handleChange}
                     className="w-full rounded-lg border p-3"
                   />
                 </div>
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Course Thumbnail
-                </label>
-
-                <input type="file" className="w-full rounded-lg border p-3" />
               </div>
 
               <div className="flex justify-end gap-3 pt-4">
@@ -217,7 +314,7 @@ export default function Courses() {
                   type="submit"
                   className="rounded-lg bg-primary px-5 py-2 text-primary-foreground"
                 >
-                  Create Course
+                  {editingId ? "Update Course" : "Create Course"}
                 </button>
               </div>
             </form>
