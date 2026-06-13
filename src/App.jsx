@@ -23,11 +23,11 @@ function App() {
       {/* Admin routes */}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<Dashboard />} />
-        <Route path="admin/courses" element={<Courses />} />
-        <Route path="admin/students" element={<Students />} />
-        <Route path="admin/submissions" element={<Submissions />} />
-        <Route path="admin/reflections" element={<Reflections />} />
-        <Route path="admin/discussions" element={<Discussions />} />
+        <Route path="courses" element={<Courses />} />
+        <Route path="students" element={<Students />} />
+        <Route path="submissions" element={<Submissions />} />
+        <Route path="reflections" element={<Reflections />} />
+        <Route path="discussions" element={<Discussions />} />
       </Route>
 
 
