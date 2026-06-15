@@ -7,8 +7,9 @@ import {
   MessageSquare,
   GraduationCap,
   X,
+  LogOut,
 } from "lucide-react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 const links = [
   {
@@ -43,10 +44,18 @@ const links = [
   },
 ];
 
-export default function AdminSidebar({
-  isOpen,
-  setIsOpen,
-}) {
+export default function AdminSidebar({ isOpen, setIsOpen }) {
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // remove auth data (adjust to your setup)
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    // redirect to login
+    navigate("/login");
+  };
+
   return (
     <>
       {isOpen && (
@@ -124,23 +133,29 @@ export default function AdminSidebar({
           ))}
         </nav>
 
-        {/* User */}
-        <div className="mt-auto border-t border-sidebar-border p-4">
+        {/* User + Logout */}
+        <div className="mt-auto border-t border-sidebar-border p-4 space-y-3">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 rounded-full bg-sidebar-accent flex items-center justify-center font-semibold">
               AD
             </div>
 
             <div>
-              <p className="font-medium">
-                Admin User
-              </p>
-
+              <p className="font-medium">Admin User</p>
               <p className="text-xs text-slate-400">
                 admin@ktahub.com
               </p>
             </div>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-500/10 transition"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
         </div>
       </aside>
     </>
