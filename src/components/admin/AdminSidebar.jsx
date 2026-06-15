@@ -13,7 +13,7 @@ import { NavLink } from "react-router-dom";
 const links = [
   {
     name: "Dashboard",
-    path: "/",
+    path: "/admin",
     icon: <LayoutDashboard size={20} />,
   },
   {

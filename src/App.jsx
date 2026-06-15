@@ -1,6 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 
-import Landing from "./components/Landing";
+import Home from "./components/Home";
+import Login from "./components/Login";
+import Register from "./components/Register";
 import AdminLayout from "./Layout/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Courses from "./pages/admin/Courses";
@@ -18,7 +20,9 @@ import LessonPage from "./pages/student/LessonPage";
 function App() {
   return (
     <Routes>
-        <Route path="/" element={<Landing />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
       {/* Admin routes */}
       <Route path="/admin" element={<AdminLayout />}>

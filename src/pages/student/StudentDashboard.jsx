@@ -79,14 +79,14 @@ export default function StudentDashboard() {
             <Bell size={18} />
           </button>
 
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0F2D52] to-[#1E4A7A] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+          <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#0F2D52] to-[#1E4A7A] text-white flex items-center justify-center font-bold text-sm shadow-sm">
             {currentStudent.name.charAt(0)}
           </div>
         </div>
       </div>
 
       {/* Hero Banner */}
-      <div className="mb-8 rounded-2xl bg-gradient-to-r from-[#0F2D52] via-[#1E4A7A] to-[#355D8A] p-5 md:p-6 text-white overflow-hidden relative shadow-md">
+      <div className="mb-8 rounded-2xl bg-linear-to-r from-[#0F2D52] via-[#1E4A7A] to-[#355D8A] p-5 md:p-6 text-white overflow-hidden relative shadow-md">
         <div className="absolute top-0 right-0 w-40 h-40 bg-[#E79B23]/20 rounded-full blur-3xl" />
         <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
 
@@ -162,7 +162,7 @@ export default function StudentDashboard() {
               className="bg-white rounded-2xl overflow-hidden border border-slate-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
             >
               {/* Course Banner */}
-              <div className="h-36 bg-gradient-to-br from-[#0F2D52] via-[#1E4A7A] to-[#355D8A] flex items-center justify-center relative overflow-hidden">
+              <div className="h-36 bg-linear-to-br from-[#0F2D52] via-[#1E4A7A] to-[#355D8A] flex items-center justify-center relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#E79B23]/20 rounded-full blur-2xl" />
                 <div className="absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full blur-xl" />
                 <BookOpen size={44} className="text-white relative z-10" />
@@ -188,7 +188,7 @@ export default function StudentDashboard() {
                   </div>
                   <div className="w-full bg-slate-100 rounded-full h-2">
                     <div
-                      className="h-2 rounded-full bg-gradient-to-r from-[#E79B23] to-amber-400 transition-all"
+                      className="h-2 rounded-full bg-linear-to-r from-[#E79B23] to-amber-400 transition-all"
                       style={{ width: `${course.progress}%` }}
                     />
                   </div>
@@ -211,7 +211,7 @@ export default function StudentDashboard() {
                       }`
                     )
                   }
-                  className="w-full bg-gradient-to-r from-[#0F2D52] to-[#1E4A7A] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:shadow-md transition-all"
+                  className="w-full bg-linear-to-r from-[#0F2D52] to-[#1E4A7A] text-white rounded-xl py-2.5 text-sm font-semibold flex items-center justify-center gap-2 hover:shadow-md transition-all"
                 >
                   Continue Learning
                   <ArrowRight size={16} />
