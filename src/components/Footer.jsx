@@ -1,27 +1,24 @@
-import { Link } from "react-router-dom";
+import { ArrowRight } from "lucide-react";
 
 export default function Footer() {
   return (
-    <footer className="border-t border-neutral bg-white">
-      <div className="container py-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <p className="text-sm text-gray-500">
-          © {new Date().getFullYear()} KTA-HUB LMS. All rights reserved.
+    <section className="bg-[#0f66b7] py-20 px-6">
+      <div className="max-w-4xl mx-auto text-center">
+        <h2 className="text-white text-3xl md:text-5xl font-bold leading-tight">
+          Ready To Experience Learning
+          <br />
+          Differently?
+        </h2>
+
+        <p className="text-blue-100 mt-6 text-lg">
+          Join the platform and start your learning journey today.
         </p>
 
-        <div className="flex items-center gap-6 text-sm">
-          <Link to="/" className="hover:text-blue-600">
-            Home
-          </Link>
-
-          <Link to="/login" className="hover:text-blue-600">
-            Login
-          </Link>
-
-          <Link to="/register" className="hover:text-blue-600">
-            Register
-          </Link>
-        </div>
+        <button className="mt-8 inline-flex items-center gap-2 bg-white text-[#0f66b7] px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition">
+          Create Free Account
+          <ArrowRight size={18} />
+        </button>
       </div>
-    </footer>
+    </section>
   );
 }

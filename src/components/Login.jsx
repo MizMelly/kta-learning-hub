@@ -25,8 +25,7 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-center text-[#1d2939] mb-6">
           Welcome Back
         </h2>
-
-        <form onSubmit={handleLogin} className="space-y-5">
+           <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -58,11 +57,8 @@ const Login = () => {
           <button
             type="submit"
             className="w-full bg-[#0f66b7] text-white py-3 rounded-xl font-medium hover:bg-[#09539a] transition"
-          >
-            Sign In
-          </button>
+          >Sign In</button>
         </form>
-
         <p className="text-sm text-center text-gray-500 mt-5">
           Don’t have an account?{" "}
           <Link
