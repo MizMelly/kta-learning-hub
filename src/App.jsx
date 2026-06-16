@@ -16,6 +16,7 @@ import StudentLayout from "./components/student/StudentLayout";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import MyCourses from "./pages/student/MyCourses";
 import LessonPage from "./pages/student/LessonPage";
+import CourseDetails from "./pages/student/CourseDetails";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
       <Route path="/student" element={<StudentLayout />}>
         <Route path="dashboard" element={<StudentDashboard />} />
         <Route path="courses" element={<MyCourses />} />
+        <Route path="courses/:courseId" element={<CourseDetails />} />
       </Route>
 
       {/* Lesson page — full screen */}

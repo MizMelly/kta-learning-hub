@@ -17,6 +17,7 @@ export default function StudentDashboard() {
 
   const [showPayment, setShowPayment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
@@ -167,13 +168,24 @@ export default function StudentDashboard() {
             <button
               className="w-full bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold hover:bg-[#09539a] transition"
               onClick={() => {
-                alert("Payment Successful!");
                 setShowPayment(false);
+                setPaymentSuccess(true);
+
+                setTimeout(() => {
+                  setPaymentSuccess(false);
+                }, 3000);
               }}
             >
               Complete Payment
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Success Notification */}
+      {paymentSuccess && (
+        <div className="fixed top-6 right-6 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-xl z-50">
+          ✅ Payment Successful!
         </div>
       )}
     </div>
