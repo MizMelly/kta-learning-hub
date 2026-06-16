@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -22,10 +23,21 @@ const Login = () => {
       className="min-h-screen flex items-center justify-center bg-[#f4f7fa] px-4"
     >
       <div className="w-full max-w-md bg-white shadow-lg rounded-2xl p-6 sm:p-8 border border-gray-100">
+
+        {/* Back Home Button */}
+        <button
+          onClick={() => navigate("/")}
+          className="flex items-center gap-2 text-sm text-[#0f66b7] font-medium mb-4 hover:underline"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back Home
+        </button>
+
         <h2 className="text-2xl font-bold text-center text-[#1d2939] mb-6">
           Welcome Back
         </h2>
-           <form onSubmit={handleLogin} className="space-y-5">
+
+        <form onSubmit={handleLogin} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Email
@@ -57,8 +69,11 @@ const Login = () => {
           <button
             type="submit"
             className="w-full bg-[#0f66b7] text-white py-3 rounded-xl font-medium hover:bg-[#09539a] transition"
-          >Sign In</button>
+          >
+            Sign In
+          </button>
         </form>
+
         <p className="text-sm text-center text-gray-500 mt-5">
           Don’t have an account?{" "}
           <Link
