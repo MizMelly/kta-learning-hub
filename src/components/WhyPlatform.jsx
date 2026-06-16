@@ -1,4 +1,3 @@
-import "react";
 import {
   Video,
   FileText,
@@ -42,18 +41,22 @@ const features = [
 
 const WhyPlatform = () => {
   return (
-    <section className="bg-[#0B67B1] py-16 sm:py-20 lg:py-24 px-5 sm:px-6 lg:px-8">
+    <section className="bg-[#0A376A] py-16 sm:py-20 lg:py-24 px-5 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         {/* Heading */}
         <div className="text-center">
+          <div className="inline-block mb-4">
+            
+          </div>
+
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
             Why This Platform?
           </h2>
 
           <p className="mt-5 text-base sm:text-lg lg:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
             Traditional learning platforms stop at delivering content.
-            KTA Learning Hub is designed to help learners engage, reflect,
-            apply, and transform. Every lesson includes:
+            KonfirmTech Learning Hub is designed to help learners engage,
+            reflect, apply, and transform. Every lesson includes:
           </p>
         </div>
 
@@ -65,20 +68,28 @@ const WhyPlatform = () => {
             return (
               <div
                 key={index}
-                className="bg-white rounded-3xl p-5 sm:p-6 shadow-md hover:shadow-xl transition duration-300 flex items-center gap-4"
+                className="group bg-white rounded-3xl p-6 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex items-center gap-4 border border-transparent hover:border-[#E88B1A]"
               >
                 {/* Icon */}
-                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-blue-100 flex items-center justify-center shrink-0">
-                  <Icon className="text-[#0B67B1]" size={24} />
+                <div className="w-14 h-14 rounded-2xl bg-[#EAF2FB] flex items-center justify-center shrink-0 group-hover:bg-[#E88B1A] transition-colors duration-300">
+                  <Icon
+                    className="text-[#0B4F97] group-hover:text-white transition-colors duration-300"
+                    size={24}
+                  />
                 </div>
 
                 {/* Text */}
-                <h3 className="text-lg sm:text-xl lg:text-2xl font-semibold text-[#091b33] leading-snug">
+                <h3 className="text-lg sm:text-xl font-semibold text-[#1F2937] leading-snug">
                   {item.title}
                 </h3>
               </div>
             );
           })}
+        </div>
+
+        {/* Bottom Accent */}
+        <div className="flex justify-center mt-16">
+          <div className="w-24 h-1 bg-[#E88B1A] rounded-full"></div>
         </div>
       </div>
     </section>

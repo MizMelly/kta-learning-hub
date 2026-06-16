@@ -7,46 +7,66 @@
   --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
   --font-heading: 'Fraunces', Georgia, serif;
   --font-display: 'Sora', system-ui, sans-serif;
-  
-  /* COLORS */
-  --color-background: oklch(0.985 0.005 240);
-  --color-foreground: oklch(0.22 0.03 250);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.22 0.03 250);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.22 0.03 250);
-  --color-primary: oklch(0.48 0.13 250);
-  --color-primary-foreground: oklch(0.99 0.005 240);
-  --color-secondary: oklch(0.95 0.012 245);
-  --color-secondary-foreground: oklch(0.3 0.04 250);
-  --color-muted: oklch(0.955 0.01 245);
-  --color-muted-foreground: oklch(0.52 0.025 250);
-  --color-accent: oklch(0.74 0.15 70);
-  --color-accent-foreground: oklch(0.25 0.05 70);
-  --color-destructive: oklch(0.58 0.22 25);
-  --color-destructive-foreground: oklch(0.99 0.005 240);
-  --color-success: oklch(0.6 0.14 155);
-  --color-success-foreground: oklch(0.99 0.005 240);
-  --color-warning: oklch(0.78 0.15 75);
-  --color-warning-foreground: oklch(0.28 0.05 75);
-  --color-border: oklch(0.9 0.012 245);
-  --color-input: oklch(0.9 0.012 245);
-  --color-ring: oklch(0.48 0.13 250);
-  --color-chart-1: oklch(0.48 0.13 250);
-  --color-chart-2: oklch(0.74 0.15 70);
-  --color-chart-3: oklch(0.6 0.14 155);
-  --color-chart-4: oklch(0.6 0.18 300);
-  --color-chart-5: oklch(0.65 0.16 200);
-  --color-sidebar: oklch(0.27 0.06 255);
-  --color-sidebar-foreground: oklch(0.9 0.02 250);
-  --color-sidebar-primary: oklch(0.74 0.15 70);
-  --color-sidebar-primary-foreground: oklch(0.25 0.05 70);
-  --color-sidebar-accent: oklch(0.33 0.06 255);
-  --color-sidebar-accent-foreground: oklch(0.97 0.01 250);
-  --color-sidebar-border: oklch(0.36 0.05 255);
-  --color-sidebar-ring: oklch(0.74 0.15 70);
-  
-  /* RADIUS */
+
+  /* BRAND COLORS - KONFIRMTECH AFRICA */
+  --color-background: #f5f7fa;
+  --color-foreground: #1f2937;
+
+  --color-card: #ffffff;
+  --color-card-foreground: #1f2937;
+
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1f2937;
+
+  /* Primary Blue */
+  --color-primary: #0b4f97;
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary Blue */
+  --color-secondary: #eaf2fb;
+  --color-secondary-foreground: #0a376a;
+
+  /* Muted */
+  --color-muted: #f3f4f6;
+  --color-muted-foreground: #6b7280;
+
+  /* Accent Orange */
+  --color-accent: #e88b1a;
+  --color-accent-foreground: #ffffff;
+
+  /* Status Colors */
+  --color-success: #16a34a;
+  --color-success-foreground: #ffffff;
+
+  --color-warning: #f59e0b;
+  --color-warning-foreground: #ffffff;
+
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+
+  /* Borders */
+  --color-border: #e5e7eb;
+  --color-input: #e5e7eb;
+  --color-ring: #0b4f97;
+
+  /* Charts */
+  --color-chart-1: #0b4f97;
+  --color-chart-2: #e88b1a;
+  --color-chart-3: #16a34a;
+  --color-chart-4: #2a6db3;
+  --color-chart-5: #0a376a;
+
+  /* Sidebar */
+  --color-sidebar: #0a376a;
+  --color-sidebar-foreground: #ffffff;
+  --color-sidebar-primary: #e88b1a;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #0b4f97;
+  --color-sidebar-accent-foreground: #ffffff;
+  --color-sidebar-border: #1d4f8f;
+  --color-sidebar-ring: #e88b1a;
+
+  /* Radius */
   --radius: 0.75rem;
 }
 

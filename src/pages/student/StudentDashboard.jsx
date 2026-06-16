@@ -20,26 +20,27 @@ export default function StudentDashboard() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
+    <div className="max-w-6xl mx-auto px-6 py-10 bg-background min-h-screen">
+
       {/* Welcome */}
       <div className="mb-10">
-        <h1 className="text-5xl font-bold text-slate-900">
+        <h1 className="text-5xl font-bold text-foreground">
           Welcome back, jasmine.
         </h1>
 
-        <p className="text-gray-500 mt-2 text-lg">
+        <p className="text-muted-foreground mt-2 text-lg">
           Continue your learning journey.
         </p>
       </div>
 
       {/* Title */}
-      <h2 className="text-3xl font-bold text-slate-900 mb-6">
+      <h2 className="text-3xl font-bold text-foreground mb-6">
         My Courses
       </h2>
 
       {studentCourses.length === 0 ? (
-        <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
-          <p className="text-gray-500">
+        <div className="bg-card rounded-3xl border border-border p-10 text-center">
+          <p className="text-muted-foreground">
             You don't have any courses yet.
           </p>
         </div>
@@ -51,35 +52,38 @@ export default function StudentDashboard() {
             return (
               <div
                 key={course.id}
-                className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6"
+                className="bg-card rounded-3xl border border-border shadow-sm p-6"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+
                   <div>
-                    <h3 className="text-2xl font-bold text-slate-900">
+                    <h3 className="text-2xl font-bold text-foreground">
                       {course.title}
                     </h3>
 
                     <div className="flex items-center gap-3 mt-4">
+
                       {isLocked && (
-                        <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-gray-500">
+                        <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full text-muted-foreground">
                           <Lock size={16} />
                           <span className="font-medium">Locked</span>
                         </div>
                       )}
 
-                      <span className="text-xl text-gray-500">
+                      <span className="text-xl text-muted-foreground">
                         ₦{course.price.toLocaleString()}
                       </span>
                     </div>
                   </div>
 
+                  {/* Buttons */}
                   {isLocked ? (
                     <button
                       onClick={() => {
                         setSelectedCourse(course);
                         setShowPayment(true);
                       }}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition"
+                      className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
                     >
                       Unlock Course
                     </button>
@@ -88,7 +92,7 @@ export default function StudentDashboard() {
                       onClick={() =>
                         navigate(`/student/course/${course.id}`)
                       }
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition"
+                      className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
                     >
                       Continue Learning
                     </button>
@@ -97,17 +101,15 @@ export default function StudentDashboard() {
 
                 {/* Progress */}
                 <div className="mt-6">
-                  <div className="flex justify-between text-sm text-gray-500 mb-2">
+                  <div className="flex justify-between text-sm text-muted-foreground mb-2">
                     <span>Progress</span>
                     <span>{course.progress}%</span>
                   </div>
 
-                  <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                  <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#D5E3F1] rounded-full transition-all"
-                      style={{
-                        width: `${course.progress}%`,
-                      }}
+                      className="h-full bg-secondary rounded-full transition-all"
+                      style={{ width: `${course.progress}%` }}
                     />
                   </div>
                 </div>
@@ -120,53 +122,56 @@ export default function StudentDashboard() {
       {/* Payment Modal */}
       {showPayment && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-7 relative">
+
+          <div className="bg-card rounded-3xl shadow-xl w-full max-w-md p-7 relative border border-border">
+
             {/* Close */}
             <button
               onClick={() => setShowPayment(false)}
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600"
+              className="absolute top-5 right-5 text-muted-foreground hover:text-foreground"
             >
               <X size={20} />
             </button>
 
-            <h2 className="text-4xl font-bold text-slate-900 mb-8">
+            <h2 className="text-4xl font-bold text-foreground mb-8">
               Payment
             </h2>
 
             {/* Course Info */}
-            <div className="border border-gray-200 rounded-3xl p-5 mb-5">
-              <div className="flex justify-between pb-5 border-b">
-                <span className="text-gray-500">Course</span>
+            <div className="border border-border rounded-3xl p-5 mb-5">
 
-                <span className="font-medium text-slate-900 text-right">
+              <div className="flex justify-between pb-5 border-b border-border">
+                <span className="text-muted-foreground">Course</span>
+
+                <span className="font-medium text-foreground text-right">
                   {selectedCourse?.title}
                 </span>
               </div>
 
               <div className="flex justify-between pt-5">
-                <span className="text-gray-500">Amount</span>
+                <span className="text-muted-foreground">Amount</span>
 
-                <span className="text-5xl font-bold text-[#0F66B7]">
+                <span className="text-4xl font-bold text-primary">
                   ₦{selectedCourse?.price.toLocaleString()}
                 </span>
               </div>
             </div>
 
             {/* Notice */}
-            <div className="bg-slate-100 rounded-2xl p-4 flex gap-3 mb-6">
+            <div className="bg-muted rounded-2xl p-4 flex gap-3 mb-6">
               <ShieldCheck
                 size={18}
-                className="text-green-600 mt-1 shrink-0"
+                className="text-success mt-1 shrink-0"
               />
 
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Simulated checkout for testing. No real payment is taken.
               </p>
             </div>
 
             {/* Payment Button */}
             <button
-              className="w-full bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold hover:bg-[#09539a] transition"
+              className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
               onClick={() => {
                 setShowPayment(false);
                 setPaymentSuccess(true);
@@ -182,10 +187,10 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Success Notification */}
+      {/* Success Toast */}
       {paymentSuccess && (
-        <div className="fixed top-6 right-6 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-xl z-50">
-          ✅ Payment Successful!
+        <div className="fixed top-6 right-6 bg-success text-success-foreground px-6 py-4 rounded-2xl shadow-xl z-50">
+          Payment Successful!
         </div>
       )}
     </div>
