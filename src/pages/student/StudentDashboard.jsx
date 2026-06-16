@@ -84,34 +84,15 @@ export default function StudentDashboard() {
 
       {/* Welcome */}
       <div className="mb-10">
-<<<<<<< HEAD
-        <h1 className="text-5xl font-bold text-foreground">
-          Welcome back, jasmine.
-        </h1>
-
-        <p className="text-muted-foreground mt-2 text-lg">
-=======
         <h1 className="text-5xl font-bold text-slate-900">
           Welcome back, {user?.fullName?.split(" ")[0] || "Student"}.
         </h1>
         <p className="text-gray-500 mt-2 text-lg">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
           Continue your learning journey.
         </p>
       </div>
 
       {/* Title */}
-<<<<<<< HEAD
-      <h2 className="text-3xl font-bold text-foreground mb-6">
-        My Courses
-      </h2>
-
-      {studentCourses.length === 0 ? (
-        <div className="bg-card rounded-3xl border border-border p-10 text-center">
-          <p className="text-muted-foreground">
-            You don't have any courses yet.
-          </p>
-=======
       <h2 className="text-3xl font-bold text-slate-900 mb-6">My Courses</h2>
 
       {studentCourses.length === 0 ? (
@@ -123,7 +104,6 @@ export default function StudentDashboard() {
           >
             Browse Courses
           </button>
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
         </div>
       ) : (
         <div className="space-y-6">
@@ -137,27 +117,19 @@ export default function StudentDashboard() {
                 className="bg-card rounded-3xl border border-border shadow-sm p-6"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-
                   <div>
                     <h3 className="text-2xl font-bold text-foreground">
                       {course.title}
                     </h3>
                     <div className="flex items-center gap-3 mt-4">
-
                       {isLocked && (
                         <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full text-muted-foreground">
                           <Lock size={16} />
                           <span className="font-medium">Locked</span>
                         </div>
                       )}
-<<<<<<< HEAD
-
-                      <span className="text-xl text-muted-foreground">
-                        ₦{course.price.toLocaleString()}
-=======
                       <span className="text-xl text-gray-500">
                         ₦{(course.price || 0).toLocaleString()}
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
                       </span>
                     </div>
                   </div>
@@ -175,9 +147,7 @@ export default function StudentDashboard() {
                     </button>
                   ) : (
                     <button
-                      onClick={() =>
-                        navigate(`/student/course/${course.id}`)
-                      }
+                      onClick={() => navigate(`/student/course/${course.id}`)}
                       className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
                     >
                       Continue Learning
@@ -191,18 +161,10 @@ export default function StudentDashboard() {
                     <span>Progress</span>
                     <span>{progress}%</span>
                   </div>
-<<<<<<< HEAD
-
-                  <div className="w-full h-3 bg-muted rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-secondary rounded-full transition-all"
-                      style={{ width: `${course.progress}%` }}
-=======
                   <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                     <div
                       className="h-full bg-[#D5E3F1] rounded-full transition-all"
                       style={{ width: `${progress}%` }}
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
                     />
                   </div>
                 </div>
@@ -215,14 +177,7 @@ export default function StudentDashboard() {
       {/* Payment Modal */}
       {showPayment && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-<<<<<<< HEAD
-
-          <div className="bg-card rounded-3xl shadow-xl w-full max-w-md p-7 relative border border-border">
-
-            {/* Close */}
-=======
           <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-7 relative">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             <button
               onClick={() => setShowPayment(false)}
               className="absolute top-5 right-5 text-muted-foreground hover:text-foreground"
@@ -230,78 +185,34 @@ export default function StudentDashboard() {
               <X size={20} />
             </button>
 
-<<<<<<< HEAD
-            <h2 className="text-4xl font-bold text-foreground mb-8">
-              Payment
-            </h2>
-
-            {/* Course Info */}
-            <div className="border border-border rounded-3xl p-5 mb-5">
-
-              <div className="flex justify-between pb-5 border-b border-border">
-                <span className="text-muted-foreground">Course</span>
-
-                <span className="font-medium text-foreground text-right">
-=======
             <h2 className="text-4xl font-bold text-slate-900 mb-8">Payment</h2>
 
             <div className="border border-gray-200 rounded-3xl p-5 mb-5">
               <div className="flex justify-between pb-5 border-b">
                 <span className="text-gray-500">Course</span>
                 <span className="font-medium text-slate-900 text-right">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
                   {selectedCourse?.title}
                 </span>
               </div>
               <div className="flex justify-between pt-5">
-<<<<<<< HEAD
-                <span className="text-muted-foreground">Amount</span>
-
-                <span className="text-4xl font-bold text-primary">
-                  ₦{selectedCourse?.price.toLocaleString()}
-=======
                 <span className="text-gray-500">Amount</span>
                 <span className="text-5xl font-bold text-[#0F66B7]">
                   ₦{(selectedCourse?.price || 0).toLocaleString()}
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
                 </span>
               </div>
             </div>
 
-<<<<<<< HEAD
-            {/* Notice */}
-            <div className="bg-muted rounded-2xl p-4 flex gap-3 mb-6">
-              <ShieldCheck
-                size={18}
-                className="text-success mt-1 shrink-0"
-              />
-
-              <p className="text-sm text-muted-foreground">
-=======
             <div className="bg-slate-100 rounded-2xl p-4 flex gap-3 mb-6">
               <ShieldCheck size={18} className="text-green-600 mt-1 shrink-0" />
               <p className="text-sm text-gray-500">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
                 Simulated checkout for testing. No real payment is taken.
               </p>
             </div>
 
             <button
-<<<<<<< HEAD
-              className="w-full bg-primary text-primary-foreground py-4 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
-              onClick={() => {
-                setShowPayment(false);
-                setPaymentSuccess(true);
-
-                setTimeout(() => {
-                  setPaymentSuccess(false);
-                }, 3000);
-              }}
-=======
               className="w-full bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold hover:bg-[#09539a] transition disabled:opacity-50"
               onClick={handlePayment}
               disabled={paymentLoading}
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             >
               {paymentLoading ? (
                 <span className="flex items-center justify-center gap-2">

@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-import { Link } from "react-router-dom";
-=======
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { auth } from "../services/api";
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
 
 export default function Register() {
   const navigate = useNavigate();
@@ -60,26 +56,6 @@ export default function Register() {
   };
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-8 shadow-sm">
-
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold text-foreground">
-            Create Account
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Join KTA Hub today
-          </p>
-        </div>
-
-        {/* Form */}
-        <form className="space-y-5">
-
-          <div>
-            <label className="mb-2 block text-sm font-medium text-foreground">
-=======
     <div className="min-h-screen flex items-center justify-center bg-[#f4f7fa] px-4">
       <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
 
@@ -105,7 +81,6 @@ export default function Register() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
               Full Name
             </label>
             <input
@@ -114,21 +89,13 @@ export default function Register() {
               value={formData.fullName}
               onChange={handleChange}
               placeholder="John Doe"
-<<<<<<< HEAD
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary"
-=======
               className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0f66b7]"
               required
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             />
           </div>
 
           <div>
-<<<<<<< HEAD
-            <label className="mb-2 block text-sm font-medium text-foreground">
-=======
             <label className="mb-2 block text-sm font-medium text-gray-700">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
               Email Address
             </label>
             <input
@@ -137,21 +104,13 @@ export default function Register() {
               value={formData.email}
               onChange={handleChange}
               placeholder="john@example.com"
-<<<<<<< HEAD
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary"
-=======
               className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0f66b7]"
               required
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             />
           </div>
 
           <div>
-<<<<<<< HEAD
-            <label className="mb-2 block text-sm font-medium text-foreground">
-=======
             <label className="mb-2 block text-sm font-medium text-gray-700">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
               Password
             </label>
             <input
@@ -160,21 +119,13 @@ export default function Register() {
               value={formData.password}
               onChange={handleChange}
               placeholder="••••••••"
-<<<<<<< HEAD
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary"
-=======
               className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0f66b7]"
               required
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             />
           </div>
 
           <div>
-<<<<<<< HEAD
-            <label className="mb-2 block text-sm font-medium text-foreground">
-=======
             <label className="mb-2 block text-sm font-medium text-gray-700">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
               Confirm Password
             </label>
             <input
@@ -183,24 +134,16 @@ export default function Register() {
               value={formData.confirmPassword}
               onChange={handleChange}
               placeholder="••••••••"
-<<<<<<< HEAD
-              className="w-full rounded-xl border border-border bg-background px-4 py-3 text-foreground outline-none transition focus:ring-2 focus:ring-primary"
-=======
               className="w-full rounded-xl border border-gray-300 px-4 py-3 outline-none focus:ring-2 focus:ring-[#0f66b7]"
               required
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             />
           </div>
 
           {/* Button */}
           <button
             type="submit"
-<<<<<<< HEAD
-            className="w-full rounded-xl bg-primary px-4 py-3 font-medium text-primary-foreground transition hover:bg-[#0a376a]"
-=======
             disabled={loading}
             className="w-full rounded-xl bg-[#0f66b7] px-4 py-3 text-white font-medium hover:bg-[#09539a] transition disabled:opacity-50 flex items-center justify-center gap-2"
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
           >
             {loading ? (
               <>
@@ -213,19 +156,9 @@ export default function Register() {
           </button>
         </form>
 
-<<<<<<< HEAD
-        {/* Footer */}
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Already have an account?{" "}
-          <Link
-            to="/login"
-            className="font-medium text-primary hover:text-[#0a376a] transition"
-          >
-=======
         <p className="mt-6 text-center text-sm text-gray-500">
           Already have an account?{" "}
           <Link to="/login" className="font-medium text-[#0f66b7] hover:underline">
->>>>>>> a361ba55878fb8d6733c7972ba0a944cde00b38f
             Sign In
           </Link>
         </p>
