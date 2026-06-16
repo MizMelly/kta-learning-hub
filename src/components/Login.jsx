@@ -1,19 +1,38 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { auth } from "../../services/api";
 
 const Login = () => {
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    // Demo login (no backend yet)
-    if (email && password) {
-      navigate("/student/dashboard");
+    try {
+      const response = await auth.login({ email, password });
+      // Store token and user data
+      localStorage.setItem("kta_token", response.data.token);
+      localStorage.setItem("kta_user", JSON.stringify(response.data.user));
+
+      // Redirect based on role
+      const user = response.data.user;
+      if (user.role === "Admin") {
+        navigate("/admin");
+      } else {
+        navigate("/student/dashboard");
+      }
+    } catch (err) {
+      setError(err.message || "Invalid email or password");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -36,6 +55,12 @@ const Login = () => {
         <h2 className="text-2xl font-bold text-center text-[#1d2939] mb-6">
           Welcome Back
         </h2>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="space-y-5">
           <div>
@@ -68,14 +93,22 @@ const Login = () => {
 
           <button
             type="submit"
-            className="w-full bg-[#0f66b7] text-white py-3 rounded-xl font-medium hover:bg-[#09539a] transition"
+            disabled={loading}
+            className="w-full bg-[#0f66b7] text-white py-3 rounded-xl font-medium hover:bg-[#09539a] transition disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Sign In
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Signing in...
+              </>
+            ) : (
+              "Sign In"
+            )}
           </button>
         </form>
 
         <p className="text-sm text-center text-gray-500 mt-5">
-          Don’t have an account?{" "}
+          Don't have an account?{" "}
           <Link
             to="/register"
             className="text-[#0f66b7] font-medium hover:underline"
