@@ -1,4 +1,5 @@
-import { Lock } from "lucide-react";
+import { Lock, ShieldCheck, X } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 const studentCourses = [
@@ -14,6 +15,9 @@ const studentCourses = [
 export default function StudentDashboard() {
   const navigate = useNavigate();
 
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+
   return (
     <div className="max-w-6xl mx-auto px-6 py-10">
       {/* Welcome */}
@@ -27,12 +31,11 @@ export default function StudentDashboard() {
         </p>
       </div>
 
-      {/* Section Title */}
+      {/* Title */}
       <h2 className="text-3xl font-bold text-slate-900 mb-6">
         My Courses
       </h2>
 
-      {/* Empty State */}
       {studentCourses.length === 0 ? (
         <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
           <p className="text-gray-500">
@@ -71,7 +74,10 @@ export default function StudentDashboard() {
 
                   {isLocked ? (
                     <button
-                      onClick={() => navigate(`/payment/${course.id}`)}
+                      onClick={() => {
+                        setSelectedCourse(course);
+                        setShowPayment(true);
+                      }}
                       className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition"
                     >
                       Unlock Course
@@ -107,6 +113,67 @@ export default function StudentDashboard() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-7 relative">
+            {/* Close */}
+            <button
+              onClick={() => setShowPayment(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+
+            <h2 className="text-4xl font-bold text-slate-900 mb-8">
+              Payment
+            </h2>
+
+            {/* Course Info */}
+            <div className="border border-gray-200 rounded-3xl p-5 mb-5">
+              <div className="flex justify-between pb-5 border-b">
+                <span className="text-gray-500">Course</span>
+
+                <span className="font-medium text-slate-900 text-right">
+                  {selectedCourse?.title}
+                </span>
+              </div>
+
+              <div className="flex justify-between pt-5">
+                <span className="text-gray-500">Amount</span>
+
+                <span className="text-5xl font-bold text-[#0F66B7]">
+                  ₦{selectedCourse?.price.toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            {/* Notice */}
+            <div className="bg-slate-100 rounded-2xl p-4 flex gap-3 mb-6">
+              <ShieldCheck
+                size={18}
+                className="text-green-600 mt-1 shrink-0"
+              />
+
+              <p className="text-sm text-gray-500">
+                Simulated checkout for testing. No real payment is taken.
+              </p>
+            </div>
+
+            {/* Payment Button */}
+            <button
+              className="w-full bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold hover:bg-[#09539a] transition"
+              onClick={() => {
+                alert("Payment Successful!");
+                setShowPayment(false);
+              }}
+            >
+              Complete Payment
+            </button>
+          </div>
         </div>
       )}
     </div>
