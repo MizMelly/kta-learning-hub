@@ -38,7 +38,7 @@ const steps = [
 
 const LearningJourney = () => {
   return (
-    <section className="bg-[#d5e1ed] py-16 md:py-24 px-4 sm:px-6">
+    <section className="bg-[#dae5ed] py-16 md:py-24 px-4 sm:px-6">
       <div className="max-w-7xl mx-auto">
         {/* Title */}
         <h2 className="text-center text-3xl sm:text-4xl lg:text-5xl font-bold text-[#091b33] mb-12 lg:mb-20">
