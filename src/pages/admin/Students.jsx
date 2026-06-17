@@ -25,7 +25,8 @@ export default function Students() {
     try {
       setLoading(true);
       const res = await admin.getStudents();
-      setStudents(res.data || res || []);
+      const data = res.data || res;
+setStudents(Array.isArray(data) ? data : data?.items || data?.students || []);
     } catch (err) {
       setError(err.message || "Failed to load students");
     } finally {

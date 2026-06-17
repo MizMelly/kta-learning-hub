@@ -35,7 +35,8 @@ export default function Submissions() {
         activeTab === "assignments"
           ? await learning.getAllAssignments("?status=Pending")
           : await learning.getAllReflections("?status=Pending");
-      setItems(res.data || res || []);
+      const data = res.data || res;
+setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
     } catch (err) {
       setError(err.message || "Failed to load submissions");
     } finally {
