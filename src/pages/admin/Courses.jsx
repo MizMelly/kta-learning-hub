@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { Plus, Loader2, Pencil, Trash2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Loader2, Pencil, Trash2, ChevronRight } from "lucide-react";
 import { courses as coursesApi } from "../../services/api";
 import CreateCourseModal from "../../components/admin/courses/CreateCourseModal";
 
 export default function Courses() {
   const [courseList, setCourseList] = useState([]);
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -105,13 +108,20 @@ export default function Courses() {
                   ₦{(course.price || 0).toLocaleString()}
                 </span>
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => handleDelete(course.id)}
-                    className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
+  <button
+    onClick={() => navigate(`/admin/courses/${course.id}`)}
+    className="p-2 rounded-xl hover:bg-blue-50 text-[#0F2D52] transition"
+    title="View modules & lessons"
+  >
+    <ChevronRight size={16} />
+  </button>
+  <button
+    onClick={() => handleDelete(course.id)}
+    className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
+  >
+    <Trash2 size={16} />
+  </button>
+</div>
               </div>
             </div>
           ))}

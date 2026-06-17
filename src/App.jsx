@@ -10,7 +10,8 @@ import Students from "./pages/admin/Students";
 import Submissions from "./pages/admin/Submissions";
 import Reflections from "./pages/admin/Reflections";
 import Discussions from "./pages/admin/Discussions";
-
+import LessonBuilder from "./pages/admin/LessonBuilder";
+import CourseDetail from "./pages/admin/CourseDetail";
 // Student (your side)
 import StudentLayout from "./components/student/StudentLayout";
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -33,6 +34,8 @@ function App() {
         <Route path="submissions" element={<Submissions />} />
         <Route path="reflections" element={<Reflections />} />
         <Route path="discussions" element={<Discussions />} />
+        <Route path="/admin/lessons/:lessonId/builder" element={<LessonBuilder />} />
+        <Route path="/admin/courses/:courseId" element={<CourseDetail />} />
       </Route>
 
 
