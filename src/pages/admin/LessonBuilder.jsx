@@ -24,7 +24,8 @@ import {
   ThumbsUp,
   Reply,
 } from "lucide-react";
-import { lessons, files, apiRequest } from "../../services/api";
+import { lessons, files } from "../../services/api";
+import apiRequest from "../../services/api";
 
 const TABS = [
   { id: "content", label: "Content", icon: FileText },
