@@ -1,325 +1,131 @@
-import { useState } from "react";
-import socialMediaImage from "../../assets/social-media.avif";
-import brandStorytellingImage from "../../assets/brand-stroytelling.avif";
-import { Pencil, Trash2, Star, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Loader2, Pencil, Trash2 } from "lucide-react";
+import { courses as coursesApi } from "../../services/api";
+import CreateCourseModal from "../../components/admin/courses/CreateCourseModal";
 
 export default function Courses() {
-  const [showModal, setShowModal] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [courseList, setCourseList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCreate, setShowCreate] = useState(false);
 
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      image: socialMediaImage,
-      title: "Social Media Management Masterclass",
-      description:
-        "A complete walkthrough of planning, creating, scheduling and analysing content across modern social platforms.",
-      modules: 3,
-      lessons: 6,
-      rating: 4.6,
-      author: "Amara Okafor",
-      price: 149,
-      status: "Published",
-    },
-    {
-      id: 2,
-      image: brandStorytellingImage,
-      title: "Brand Storytelling Essentials",
-      description:
-        "Craft a compelling brand narrative that converts followers into customers.",
-      modules: 1,
-      lessons: 1,
-      rating: 4.7,
-      author: "Daniel Mensah",
-      price: 99,
-      status: "Draft",
-    },
-  ]);
-
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    author: "",
-    price: "",
-  });
-
-  // ✅ INPUT HANDLER (UNCHANGED UI)
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
-
-  // ✅ CREATE + UPDATE
-  const handleSubmit = (e) => {
-    e.preventDefault();
-
-    if (editingId) {
-      setCourses((prev) =>
-        prev.map((course) =>
-          course.id === editingId
-            ? {
-                ...course,
-                title: formData.title,
-                description: formData.description,
-                author: formData.author,
-                price: Number(formData.price),
-              }
-            : course
-        )
-      );
-    } else {
-      const newCourse = {
-        id: Date.now(),
-        image: socialMediaImage,
-        title: formData.title,
-        description: formData.description,
-        author: formData.author,
-        price: Number(formData.price),
-        modules: 0,
-        lessons: 0,
-        rating: 0,
-        status: "Draft",
-      };
-
-      setCourses([newCourse, ...courses]);
+  const fetchCourses = async () => {
+    try {
+      setLoading(true);
+      const res = await coursesApi.getAll();
+      setCourseList(res.data || res || []);
+    } catch (err) {
+      setError(err.message || "Failed to load courses");
+    } finally {
+      setLoading(false);
     }
-
-    setFormData({
-      title: "",
-      description: "",
-      author: "",
-      price: "",
-    });
-
-    setEditingId(null);
-    setShowModal(false);
   };
 
-  // 🗑 DELETE (USES YOUR EXISTING BUTTON)
-  const handleDelete = (id) => {
-    setCourses(courses.filter((course) => course.id !== id));
-  };
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
-  // ✏ EDIT (USES YOUR EXISTING BUTTON)
-  const handleEdit = (course) => {
-    setFormData({
-      title: course.title,
-      description: course.description,
-      author: course.author,
-      price: course.price,
-    });
-
-    setEditingId(course.id);
-    setShowModal(true);
+  const handleDelete = async (id) => {
+    if (!confirm("Delete this course? This cannot be undone.")) return;
+    try {
+      await coursesApi.delete(id);
+      setCourseList((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      alert("Failed to delete: " + err.message);
+    }
   };
 
   return (
-    <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
-      {/* HEADER (UNCHANGED UI) */}
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground md:text-4xl">
-            Course Management
+          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+            Courses
           </h1>
-
-          <p className="mt-2 text-sm text-muted-foreground md:text-base">
-            Create, edit and organise courses, modules and lessons.
+          <p className="mt-2 text-muted-foreground">
+            Manage all courses on the platform.
           </p>
         </div>
 
         <button
-          onClick={() => {
-            setFormData({
-              title: "",
-              description: "",
-              author: "",
-              price: "",
-            });
-            setEditingId(null);
-            setShowModal(true);
-          }}
-          className="flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 font-medium text-primary-foreground shadow-sm transition hover:opacity-90"
+          onClick={() => setShowCreate(true)}
+          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-2xl font-semibold hover:opacity-90 transition"
         >
           <Plus size={18} />
-          New Course
+          Create Course
         </button>
       </div>
 
-      {/* CARDS (UNCHANGED UI) */}
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-        {courses.map((course) => (
-          <div
-            key={course.id}
-            className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition hover:shadow-md"
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="animate-spin text-primary" size={32} />
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 text-red-600 rounded-2xl p-5 text-sm">
+          {error}
+        </div>
+      ) : courseList.length === 0 ? (
+        <div className="bg-card rounded-3xl border border-border p-12 text-center">
+          <p className="text-muted-foreground mb-4">No courses yet.</p>
+          <button
+            onClick={() => setShowCreate(true)}
+            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-2xl font-semibold"
           >
-            <div className="relative h-40 overflow-hidden sm:h-44 md:h-48">
-              <img
-                src={course.image}
-                alt={course.title}
-                className="h-full w-full object-cover"
-              />
-
-              <span
-                className={`absolute left-3 top-3 rounded-full px-3 py-1 text-xs font-semibold ${
-                  course.status === "Published"
-                    ? "bg-success text-success-foreground"
-                    : "bg-warning text-warning-foreground"
-                }`}
-              >
-                {course.status}
-              </span>
-            </div>
-
-            <div className="space-y-4 p-4 sm:p-5">
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                <h2 className="text-lg font-semibold text-foreground sm:text-xl">
+            Create your first course
+          </button>
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {courseList.map((course) => (
+            <div
+              key={course.id}
+              className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <h3 className="text-lg font-semibold text-foreground leading-snug">
                   {course.title}
-                </h2>
-
-                <span className="whitespace-nowrap text-2xl font-bold text-primary">
-                  ${course.price}
+                </h3>
+                <span
+                  className={`text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0 ${
+                    course.isPublished
+                      ? "bg-green-100 text-green-700"
+                      : "bg-amber-100 text-amber-700"
+                  }`}
+                >
+                  {course.isPublished ? "Published" : "Draft"}
                 </span>
               </div>
 
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {course.description}
+              <p className="text-sm text-muted-foreground mb-4">
+                {course.totalModules || 0} modules · {course.totalLessons || 0} lessons
               </p>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-                <span>{course.modules} modules</span>
-                <span>{course.lessons} lessons</span>
-
-                <div className="flex items-center gap-1">
-                  <Star size={14} fill="currentColor" className="text-yellow-500" />
-                  <span>{course.rating}</span>
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
+                <span className="text-lg font-bold text-foreground">
+                  ₦{(course.price || 0).toLocaleString()}
+                </span>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleDelete(course.id)}
+                    className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
+                  >
+                    <Trash2 size={16} />
+                  </button>
                 </div>
-
-                <span>by {course.author}</span>
-              </div>
-
-              <div className="flex gap-2">
-                <button className="flex-1 rounded-xl bg-primary py-2.5 text-sm font-medium text-primary-foreground transition hover:opacity-90">
-                  Manage
-                </button>
-
-                {/* ✏ EDIT BUTTON (NOW WORKS) */}
-                <button
-                  onClick={() => handleEdit(course)}
-                  className="rounded-xl border border-border p-2.5 transition hover:bg-muted"
-                >
-                  <Pencil size={18} />
-                </button>
-
-                {/* 🗑 DELETE BUTTON (NOW WORKS) */}
-                <button
-                  onClick={() => handleDelete(course.id)}
-                  className="rounded-xl border border-border p-2.5 text-destructive transition hover:bg-muted"
-                >
-                  <Trash2 size={18} />
-                </button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* MODAL (UNCHANGED UI, ONLY FUNCTIONALITY ADDED) */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <h2 className="text-2xl font-bold">
-                {editingId ? "Edit Course" : "Create Course"}
-              </h2>
-
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-2xl text-gray-500 hover:text-gray-700"
-              >
-                ×
-              </button>
-            </div>
-
-            <form className="space-y-4" onSubmit={handleSubmit}>
-              <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Course Title
-                </label>
-
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border p-3"
-                />
-              </div>
-
-              <div>
-                <label className="mb-2 block text-sm font-medium">
-                  Description
-                </label>
-
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows="4"
-                  className="w-full rounded-lg border p-3"
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <label className="mb-2 block text-sm font-medium">
-                    Instructor
-                  </label>
-
-                  <input
-                    type="text"
-                    name="author"
-                    value={formData.author}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border p-3"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium">
-                    Price ($)
-                  </label>
-
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border p-3"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="rounded-lg border px-5 py-2"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  className="rounded-lg bg-primary px-5 py-2 text-primary-foreground"
-                >
-                  {editingId ? "Update Course" : "Create Course"}
-                </button>
-              </div>
-            </form>
-          </div>
+          ))}
         </div>
+      )}
+
+      {showCreate && (
+        <CreateCourseModal
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            fetchCourses();
+          }}
+        />
       )}
     </div>
   );

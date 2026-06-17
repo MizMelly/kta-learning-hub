@@ -7,16 +7,18 @@ const getToken = () => localStorage.getItem("kta_token");
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
 
+  const isFormData = options.body instanceof FormData;
+
   const config = {
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
       ...options.headers,
     },
     ...options,
   };
 
-  if (config.body && typeof config.body === "object") {
+  if (config.body && typeof config.body === "object" && !isFormData) {
     config.body = JSON.stringify(config.body);
   }
 
@@ -43,6 +45,18 @@ export const auth = {
 export const courses = {
   getAll: () => apiRequest("/courses/published"),
   getById: (id) => apiRequest(`/courses/${id}`),
+  create: (body) => apiRequest("/courses", { method: "POST", body }),
+  update: (id, body) => apiRequest(`/courses/${id}`, { method: "PUT", body }),
+  delete: (id) => apiRequest(`/courses/${id}`, { method: "DELETE" }),
+};
+
+// Modules
+export const modules = {
+  getByCourse: (courseId) => apiRequest(`/modules/course/${courseId}`),
+  create: (body) => apiRequest("/modules", { method: "POST", body }),
+  update: (id, body) => apiRequest(`/modules/${id}`, { method: "PUT", body }),
+  delete: (id) => apiRequest(`/modules/${id}`, { method: "DELETE" }),
+  reorder: (body) => apiRequest("/modules/reorder", { method: "PUT", body }),
 };
 
 // Enrollments
@@ -55,40 +69,42 @@ export const enrollments = {
 
 // Lessons
 export const lessons = {
-  getById: (id) => apiRequest(`/lessons/${id}`),
-  getStudentLesson: (id) => apiRequest(`/lessons/${id}/student`),
   getByModule: (moduleId) => apiRequest(`/lessons/module/${moduleId}`),
+  getStudentLesson: (id) => apiRequest(`/lessons/${id}/student`),
+  create: (body) => apiRequest("/lessons", { method: "POST", body }),
+  updateContent: (id, body) => apiRequest(`/lessons/${id}/content`, { method: "PUT", body }),
+  updateAssignment: (id, body) => apiRequest(`/lessons/${id}/assignment`, { method: "PUT", body }),
+  updateReflection: (id, body) => apiRequest(`/lessons/${id}/reflection`, { method: "PUT", body }),
+  updateCommunity: (id, body) => apiRequest(`/lessons/${id}/community`, { method: "PUT", body }),
+  updateRatingSettings: (id, body) => apiRequest(`/lessons/${id}/rating-settings`, { method: "PUT", body }),
+  publish: (id, body) => apiRequest(`/lessons/${id}/publish`, { method: "PUT", body }),
 };
 
 // Learning (progress, assignments, reflections, ratings)
 export const learning = {
   // Progress
   getProgress: (lessonId) => apiRequest(`/learning/progress/${lessonId}`),
-  complete: (lessonId) => apiRequest(`/learning/progress/${lessonId}/complete`, { method: "POST" }),
+  complete: (lessonId, body) => apiRequest(`/learning/progress/${lessonId}/complete`, { method: "POST", body }),
 
   // Assignments
   submitAssignment: (body) => apiRequest("/learning/assignments/submit", { method: "POST", body }),
-  getAssignment: (submissionId) => apiRequest(`/learning/assignments/${submissionId}`),
-  getAllAssignments: () => apiRequest("/learning/assignments"),
+  getAllAssignments: (params = "") => apiRequest(`/learning/assignments${params}`),
   reviewAssignment: (submissionId, body) => apiRequest(`/learning/assignments/${submissionId}/review`, { method: "PUT", body }),
 
   // Reflections
   submitReflection: (body) => apiRequest("/learning/reflections/submit", { method: "POST", body }),
-  getReflection: (submissionId) => apiRequest(`/learning/reflections/${submissionId}`),
-  getAllReflections: () => apiRequest("/learning/reflections"),
+  getAllReflections: (params = "") => apiRequest(`/learning/reflections${params}`),
   reviewReflection: (submissionId, body) => apiRequest(`/learning/reflections/${submissionId}/review`, { method: "PUT", body }),
 
   // Ratings
   submitRating: (body) => apiRequest("/learning/ratings/submit", { method: "POST", body }),
-  getLessonRating: (lessonId) => apiRequest(`/learning/ratings/lesson/${lessonId}`),
 };
 
 // Discussions
 export const discussions = {
   getByLesson: (lessonId) => apiRequest(`/discussions/lesson/${lessonId}`),
-  getAll: () => apiRequest("/discussions"),
+  getAll: (params = "") => apiRequest(`/discussions${params}`),
   postComment: (body) => apiRequest("/discussions", { method: "POST", body }),
-  updateComment: (commentId, body) => apiRequest(`/discussions/${commentId}`, { method: "PUT", body }),
   deleteComment: (commentId) => apiRequest(`/discussions/${commentId}`, { method: "DELETE" }),
   likeComment: (commentId) => apiRequest(`/discussions/${commentId}/like`, { method: "POST" }),
   toggleHide: (commentId) => apiRequest(`/discussions/${commentId}/toggle-hide`, { method: "PUT" }),
@@ -97,23 +113,20 @@ export const discussions = {
 
 // Files
 export const files = {
-  uploadVideo: (formData) => apiRequest("/files/upload-video", { method: "POST", body: formData, headers: {} }),
-  uploadAudio: (formData) => apiRequest("/files/upload-audio", { method: "POST", body: formData, headers: {} }),
-  uploadDocument: (formData) => apiRequest("/files/upload-document", { method: "POST", body: formData, headers: {} }),
-  uploadImage: (formData) => apiRequest("/files/upload-image", { method: "POST", body: formData, headers: {} }),
+  uploadVideo: (formData) => apiRequest("/files/upload/video", { method: "POST", body: formData }),
+  uploadAudio: (formData) => apiRequest("/files/upload/audio", { method: "POST", body: formData }),
+  uploadDocument: (formData) => apiRequest("/files/upload/document", { method: "POST", body: formData }),
+  uploadImage: (formData) => apiRequest("/files/upload/image", { method: "POST", body: formData }),
 };
 
 // Admin
 export const admin = {
   getDashboard: () => apiRequest("/admin/dashboard"),
-  getStudents: () => apiRequest("/admin/students"),
-  createStudent: (body) => apiRequest("/admin/students", { method: "POST", body }),
+  getStudents: (params = "") => apiRequest(`/admin/students${params}`),
   getStudent: (id) => apiRequest(`/admin/students/${id}`),
-  getStudentStatus: (id) => apiRequest(`/admin/students/${id}/status`),
-  getCourseAnalytics: (courseId) => apiRequest(`/admin/analytics/courses/${courseId}`),
+  updateStudentStatus: (id, body) => apiRequest(`/admin/students/${id}/status`, { method: "PUT", body }),
+  getCourseAnalytics: (courseId) => apiRequest(`/admin/analytics/course/${courseId}`),
   getPlatformAnalytics: () => apiRequest("/admin/analytics/platform"),
-  getSettings: () => apiRequest("/admin/settings"),
-  updateSettings: (body) => apiRequest("/admin/settings", { method: "PUT", body }),
 };
 
 export default apiRequest;
