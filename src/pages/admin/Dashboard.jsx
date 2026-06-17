@@ -13,16 +13,23 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      try {
-        setLoading(true);
-        const res = await admin.getDashboard();
-        setStats(res.data || res);
-      } catch (err) {
-        setError(err.message || "Failed to load dashboard");
-      } finally {
-        setLoading(false);
-      }
-    };
+  try {
+    setLoading(true);
+    const res = await admin.getDashboard();
+    // Handle empty response
+    if (!res || !res.data) {
+      setStats(null);
+      return;
+    }
+    setStats(res.data || res);
+  } catch (err) {
+    console.error("Dashboard error:", err);
+    setError(err.message || "Failed to load dashboard");
+    setStats(null); // Don't crash, just show empty state
+  } finally {
+    setLoading(false);
+  }
+};
     fetchStats();
   }, []);
 

@@ -69,6 +69,7 @@ export const enrollments = {
 
 // Lessons
 export const lessons = {
+  getById: (id) => apiRequest(`/lessons/${id}`),
   getByModule: (moduleId) => apiRequest(`/lessons/module/${moduleId}`),
   getStudentLesson: (id) => apiRequest(`/lessons/${id}/student`),
   create: (body) => apiRequest("/lessons", { method: "POST", body }),
