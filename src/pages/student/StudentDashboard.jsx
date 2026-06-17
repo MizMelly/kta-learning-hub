@@ -1,4 +1,4 @@
-import { Lock, ShieldCheck, X, Loader2 } from "lucide-react";
+import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, enrollments } from "../../services/api";
@@ -46,7 +46,6 @@ export default function StudentDashboard() {
       });
       setShowPayment(false);
       setPaymentSuccess(true);
-      // Refresh courses to show updated status
       const updated = await enrollments.getMyCourses();
       setStudentCourses(updated.data || updated || []);
       setTimeout(() => setPaymentSuccess(false), 3000);
@@ -80,7 +79,7 @@ export default function StudentDashboard() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10 bg-background min-h-screen">
+    <div className="max-w-6xl mx-auto px-6 py-10 min-h-screen">
 
       {/* Welcome */}
       <div className="mb-10">
@@ -110,64 +109,117 @@ export default function StudentDashboard() {
           {studentCourses.map((course) => {
             const isLocked = !course.isPaid && !course.isEnrolled;
             const progress = course.progressPercentage || 0;
+            const moduleCount = course.modules?.length || course.moduleCount || 0;
+            const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
+            const completedCount = course.completedLessons || 0;
 
             return (
               <div
                 key={course.id}
-                className="bg-card rounded-3xl border border-border shadow-sm p-6"
+                className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
-                  <div>
-                    <h3 className="text-2xl font-bold text-foreground">
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-slate-900">
                       {course.title}
                     </h3>
-                    <div className="flex items-center gap-3 mt-4">
+                    <p className="text-gray-400 text-sm mt-1">
+                      {course.instructor || "KTA Learning Hub"}
+                    </p>
+
+                    <div className="flex items-center gap-3 mt-4 flex-wrap">
                       {isLocked && (
-                        <div className="flex items-center gap-2 bg-muted px-4 py-2 rounded-full text-muted-foreground">
+                        <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-gray-500">
                           <Lock size={16} />
                           <span className="font-medium">Locked</span>
                         </div>
                       )}
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Layers size={13} />
+                        {moduleCount} modules
+                      </div>
+                      <span className="text-gray-300">·</span>
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <PlayCircle size={13} />
+                        {lessonCount} lessons
+                      </div>
+                      {!isLocked && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <div className="flex items-center gap-1 text-xs text-green-600">
+                            <CheckCircle2 size={13} />
+                            {completedCount} completed
+                          </div>
+                        </>
+                      )}
+                      <span className="text-gray-300">·</span>
                       <span className="text-xl text-gray-500">
                         ₦{(course.price || 0).toLocaleString()}
                       </span>
                     </div>
                   </div>
 
-                  {/* Buttons */}
                   {isLocked ? (
                     <button
                       onClick={() => {
                         setSelectedCourse(course);
                         setShowPayment(true);
                       }}
-                      className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
                     >
                       Unlock Course
                     </button>
                   ) : (
                     <button
-  onClick={() => navigate(`/student/courses/${course.id}`)}
-  className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
->
-  Continue Learning
-</button>
+                      onClick={() => navigate(`/student/courses/${course.id}`)}
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
+                    >
+                      Continue Learning
+                    </button>
                   )}
                 </div>
 
                 {/* Progress */}
                 <div className="mt-6">
-                  <div className="flex justify-between text-sm text-muted-foreground mb-2">
+                  <div className="flex justify-between text-sm text-gray-500 mb-2">
                     <span>Progress</span>
                     <span>{progress}%</span>
                   </div>
                   <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#D5E3F1] rounded-full transition-all"
+                      className="h-full bg-[#0F66B7] rounded-full transition-all"
                       style={{ width: `${progress}%` }}
                     />
                   </div>
                 </div>
+
+                {/* Quick lesson buttons for enrolled courses */}
+                {!isLocked && course.modules && (
+                  <div className="mt-5 pt-5 border-t border-gray-100">
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                      Jump to a lesson
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {course.modules.flatMap((mod) =>
+                        mod.lessons?.map((lesson) => (
+                          <button
+                            key={lesson.id}
+                            onClick={() =>
+                              navigate(`/student/courses/${course.id}/lessons/${lesson.id}`)
+                            }
+                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                              lesson.completed
+                                ? "bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
+                                : "bg-white text-gray-600 border-gray-200 hover:border-[#0F66B7] hover:text-[#0F66B7]"
+                            }`}
+                          >
+                            {lesson.title}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
@@ -180,7 +232,7 @@ export default function StudentDashboard() {
           <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-7 relative">
             <button
               onClick={() => setShowPayment(false)}
-              className="absolute top-5 right-5 text-muted-foreground hover:text-foreground"
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600"
             >
               <X size={20} />
             </button>
@@ -188,7 +240,7 @@ export default function StudentDashboard() {
             <h2 className="text-4xl font-bold text-slate-900 mb-8">Payment</h2>
 
             <div className="border border-gray-200 rounded-3xl p-5 mb-5">
-              <div className="flex justify-between pb-5 border-b">
+              <div className="flex justify-between pb-5 border-b border-gray-100">
                 <span className="text-gray-500">Course</span>
                 <span className="font-medium text-slate-900 text-right">
                   {selectedCourse?.title}
@@ -229,7 +281,8 @@ export default function StudentDashboard() {
 
       {/* Success Toast */}
       {paymentSuccess && (
-        <div className="fixed top-6 right-6 bg-success text-success-foreground px-6 py-4 rounded-2xl shadow-xl z-50">
+        <div className="fixed top-6 right-6 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-xl z-50 flex items-center gap-2">
+          <CheckCircle2 size={18} />
           Payment Successful!
         </div>
       )}
