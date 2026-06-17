@@ -13,44 +13,40 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchStats = async () => {
-  try {
-    setLoading(true);
-    const res = await admin.getDashboard();
-    // Handle empty response
-    if (!res || !res.data) {
-      setStats(null);
-      return;
-    }
-    setStats(res.data || res);
-  } catch (err) {
-    console.error("Dashboard error:", err);
-    setError(err.message || "Failed to load dashboard");
-    setStats(null); // Don't crash, just show empty state
-  } finally {
-    setLoading(false);
-  }
-};
+      try {
+        setLoading(true);
+        const res = await admin.getDashboard();
+        // Handle various response formats
+        const data = res?.data || res;
+        setStats(data || null);
+      } catch (err) {
+        console.error("Dashboard error:", err);
+        setError(err.message || "Failed to load dashboard");
+        setStats(null);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchStats();
   }, []);
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-8 bg-slate-50 min-h-screen">
       <div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+        <h1 className="text-3xl sm:text-4xl font-bold text-[#0B1F3A]">
           Dashboard
         </h1>
-
-        <p className="mt-2 text-muted-foreground">
+        <p className="mt-2 text-gray-500">
           A snapshot of activity across the KTA Learning Hub.
         </p>
       </div>
 
       {loading ? (
         <div className="flex justify-center py-10">
-          <Loader2 className="animate-spin text-primary" size={32} />
+          <Loader2 className="animate-spin text-[#0F66B7]" size={32} />
         </div>
       ) : error ? (
-        <div className="bg-red-50 text-red-600 rounded-2xl p-5 text-sm">
+        <div className="bg-red-50 text-red-600 rounded-2xl p-5 text-sm border border-red-100">
           {error}
         </div>
       ) : (
