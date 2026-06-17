@@ -50,7 +50,7 @@ export default function MyCourses() {
   }, []);
 
   const isEnrolled = (courseId) =>
-    enrolledCourses.some((c) => c.id === courseId || c.courseId === courseId);
+    enrolledCourses.some((c) => (c.courseId || c.id) === courseId);
 
   const handleEnroll = async (course) => {
     if (course.price > 0) {
@@ -181,7 +181,8 @@ export default function MyCourses() {
       ) : (
         <div className="space-y-4">
           {displayedCourses.map((course) => {
-            const courseId = course.id || course.courseId;
+            // FIX: Use courseId if available (enrollment object), otherwise id (direct course object)
+            const courseId = course.courseId || course.id;
             const enrolled = isEnrolled(courseId);
             const progress = course.progressPercentage || course.progress || 0;
             const moduleCount = course.modules?.length || course.moduleCount || 0;

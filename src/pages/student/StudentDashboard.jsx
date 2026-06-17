@@ -42,7 +42,7 @@ export default function StudentDashboard() {
     try {
       setPaymentLoading(true);
       // Step 1: Enroll first (creates enrollment record)
-      const enrollRes = await enrollments.enroll({ courseId: selectedCourse.id });
+      const enrollRes = await enrollments.enroll({ courseId: selectedCourse.courseId || selectedCourse.id });
       // Step 2: Extract enrollmentId from response
       const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
       if (!enrollmentId) {
@@ -121,6 +121,8 @@ export default function StudentDashboard() {
       ) : (
         <div className="space-y-6">
           {studentCourses.map((course) => {
+            // FIX: Use courseId if available (enrollment object), otherwise id
+            const courseId = course.courseId || course.id;
             const progress = course.progressPercentage || 0;
             const moduleCount = course.modules?.length || course.moduleCount || 0;
             const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
@@ -129,7 +131,7 @@ export default function StudentDashboard() {
 
             return (
               <div
-                key={course.id}
+                key={courseId}
                 className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6"
               >
                 <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
@@ -169,7 +171,7 @@ export default function StudentDashboard() {
                   </div>
 
                   <button
-                    onClick={() => navigate(`/student/courses/${course.id}`)}
+                    onClick={() => navigate(`/student/courses/${courseId}`)}
                     className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
                   >
                     {hasContent ? "Continue Learning" : "View Course"}
@@ -202,7 +204,7 @@ export default function StudentDashboard() {
                           <button
                             key={lesson.id}
                             onClick={() =>
-                              navigate(`/student/courses/${course.id}/lessons/${lesson.id}`)
+                              navigate(`/student/courses/${courseId}/lessons/${lesson.id}`)
                             }
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
                               lesson.completed
