@@ -77,11 +77,18 @@ export default function MyCourses() {
     try {
       setPaymentLoading(true);
       // Step 1: Enroll first (creates enrollment record)
-      await enrollments.enroll({ courseId: selectedCourse.id });
-      // Step 2: Then pay (attaches payment to existing enrollment)
+      const enrollRes = await enrollments.enroll({ courseId: selectedCourse.id });
+      // Step 2: Extract enrollmentId from response
+      const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
+      if (!enrollmentId) {
+        throw new Error("Enrollment succeeded but no enrollment ID returned");
+      }
+      // Step 3: Pay using enrollmentId (not courseId)
       await enrollments.pay({
-        courseId: selectedCourse.id,
-        amount: selectedCourse.price,
+        enrollmentId: enrollmentId,
+        paymentMethod: "Mock",
+        paymentReference: "mock-ref-" + Date.now(),
+        transactionId: "mock-txn-" + Date.now(),
       });
       setShowPayment(false);
       await fetchData();
