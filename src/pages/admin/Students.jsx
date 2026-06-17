@@ -1,226 +1,228 @@
-import { MoreVertical } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Search,
+  Loader2,
+  User,
+  Mail,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  MoreHorizontal,
+  Filter,
+} from "lucide-react";
+import { admin } from "../../services/api";
 
 export default function Students() {
-  const students = [
-    {
-      id: 1,
-      name: "Grace Adeyemi",
-      email: "grace@example.com",
-      joined: "2026-02-11",
-      enrollments: ["Social Media Management Masterclass"],
-      progress: 67,
-    },
-    {
-      id: 2,
-      name: "Tunde Bello",
-      email: "tunde@example.com",
-      joined: "2026-03-02",
-      enrollments: [
-        "Social Media Management Masterclass",
-        "Brand Storytelling Essentials",
-      ],
-      progress: 33,
-    },
-    {
-      id: 3,
-      name: "Lara Smith",
-      email: "lara@example.com",
-      joined: "2026-03-19",
-      enrollments: ["Social Media Management Masterclass"],
-      progress: 100,
-    },
-    {
-      id: 4,
-      name: "Kofi Asante",
-      email: "kofi@example.com",
-      joined: "2026-04-05",
-      enrollments: ["Brand Storytelling Essentials"],
-      progress: 15,
-    },
-    {
-      id: 5,
-      name: "Mei Lin",
-      email: "mei@example.com",
-      joined: "2026-04-21",
-      enrollments: ["Social Media Management Masterclass"],
-      progress: 50,
-    },
-  ];
+  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
-  const getInitials = (name) =>
-    name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase();
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await admin.getStudents();
+      setStudents(res.data || res || []);
+    } catch (err) {
+      setError(err.message || "Failed to load students");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, []);
+
+  const filteredStudents = students.filter((s) => {
+    const matchesSearch =
+      (s.fullName || "").toLowerCase().includes(search.toLowerCase()) ||
+      (s.email || "").toLowerCase().includes(search.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ||
+      (statusFilter === "active" && s.status === "Active") ||
+      (statusFilter === "inactive" && s.status === "Inactive");
+    return matchesSearch && matchesStatus;
+  });
+
+  const toggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
+    try {
+      await admin.updateStudentStatus(id, { status: newStatus });
+      setStudents((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+      );
+    } catch (err) {
+      alert("Failed to update status: " + err.message);
+    }
+  };
 
   return (
-    <div className="space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl md:text-4xl font-bold">
-          Student Management
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          View students, their enrollments and progress.
+        <h1 className="text-3xl font-bold text-[#0B1F3A]">Students</h1>
+        <p className="text-slate-500 mt-1">
+          Manage and monitor all enrolled students.
         </p>
       </div>
 
-      {/* ================= DESKTOP TABLE ================= */}
-      <div className="hidden lg:block overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-muted border-b border-border">
-              <tr>
-                <th className="text-left px-6 py-4 text-sm font-semibold">
-                  Student
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold">
-                  Joined
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold">
-                  Enrollments
-                </th>
-                <th className="text-left px-6 py-4 text-sm font-semibold">
-                  Progress
-                </th>
-                <th className="text-right px-6 py-4 text-sm font-semibold">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {students.map((student) => (
-                <tr
-                  key={student.id}
-                  className="border-b last:border-none border-border"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
-                        {getInitials(student.name)}
-                      </div>
-                      <div>
-                        <p className="font-medium">{student.name}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {student.email}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4 text-muted-foreground">
-                    {student.joined}
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      {student.enrollments.map((course, i) => (
-                        <span
-                          key={i}
-                          className="text-xs px-3 py-1 rounded-full bg-muted"
-                        >
-                          {course}
-                        </span>
-                      ))}
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-28 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${student.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium">
-                        {student.progress}%
-                      </span>
-                    </div>
-                  </td>
-
-                  <td className="px-6 py-4 text-right">
-                    <button className="p-2 rounded-lg hover:bg-muted">
-                      <MoreVertical size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Search & Filter */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1">
+          <Search
+            size={18}
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
+          />
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or email..."
+            className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2D52] text-sm"
+          />
         </div>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2D52] text-sm bg-white"
+        >
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
       </div>
 
-      {/* ================= MOBILE / TABLET CARDS ================= */}
-      <div className="grid gap-4 lg:hidden">
-        {students.map((student) => (
-          <div
-            key={student.id}
-            className="rounded-2xl border border-border bg-card p-4 shadow-sm"
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex gap-3">
-                <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center font-semibold">
-                  {getInitials(student.name)}
-                </div>
-
-                <div>
-                  <h3 className="font-semibold">{student.name}</h3>
-                  <p className="text-sm text-muted-foreground break-all">
-                    {student.email}
-                  </p>
-                </div>
-              </div>
-
-              <button className="p-2 rounded-lg hover:bg-muted">
-                <MoreVertical size={18} />
-              </button>
-            </div>
-
-            <div className="mt-4 space-y-3">
-              <div>
-                <p className="text-xs text-muted-foreground mb-1">
-                  Joined
-                </p>
-                <p className="text-sm">{student.joined}</p>
-              </div>
-
-              <div>
-                <p className="text-xs text-muted-foreground mb-2">
-                  Enrollments
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-                  {student.enrollments.map((course, i) => (
-                    <span
-                      key={i}
-                      className="text-xs px-3 py-1 rounded-full bg-muted"
-                    >
-                      {course}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between text-sm mb-2">
-                  <span>Progress</span>
-                  <span>{student.progress}%</span>
-                </div>
-
-                <div className="h-2 bg-muted rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary"
-                    style={{ width: `${student.progress}%` }}
-                  />
-                </div>
-              </div>
-            </div>
+      {/* Table */}
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Loader2 className="animate-spin text-[#0F2D52]" size={32} />
+        </div>
+      ) : error ? (
+        <div className="bg-red-50 text-red-600 rounded-2xl p-5 text-sm">
+          {error}
+        </div>
+      ) : filteredStudents.length === 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <User size={40} className="mx-auto text-slate-300 mb-4" />
+          <p className="text-slate-500">No students found.</p>
+        </div>
+      ) : (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50 border-b border-slate-200">
+                <tr>
+                  <th className="text-left px-5 py-3.5 font-semibold text-slate-600">
+                    Student
+                  </th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-slate-600">
+                    Courses
+                  </th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-slate-600">
+                    Progress
+                  </th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-slate-600">
+                    Submissions
+                  </th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-slate-600">
+                    Last Login
+                  </th>
+                  <th className="text-left px-5 py-3.5 font-semibold text-slate-600">
+                    Status
+                  </th>
+                  <th className="px-5 py-3.5"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredStudents.map((student) => (
+                  <tr
+                    key={student.id}
+                    className="hover:bg-slate-50/50 transition"
+                  >
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-full bg-[#0F2D52] text-white flex items-center justify-center font-semibold text-sm">
+                          {(student.fullName || "?")
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .toUpperCase()
+                            .slice(0, 2)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-[#0B1F3A]">
+                            {student.fullName || "Unknown"}
+                          </p>
+                          <p className="text-xs text-slate-400">
+                            {student.email}
+                          </p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5 text-slate-600">
+                        <BookOpen size={14} />
+                        <span>{student.enrolledCourses || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-20 bg-slate-200 rounded-full h-2">
+                          <div
+                            className="bg-[#E79B23] h-2 rounded-full"
+                            style={{ width: `${student.progressPercentage || 0}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-slate-500">
+                          {student.progressPercentage || 0}%
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-1.5 text-slate-600">
+                        <CheckCircle2 size={14} />
+                        <span>{student.submissionsCount || 0}</span>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-slate-500">
+                      <div className="flex items-center gap-1.5">
+                        <Clock size={14} />
+                        {student.lastLogin
+                          ? new Date(student.lastLogin).toLocaleDateString()
+                          : "Never"}
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => toggleStatus(student.id, student.status)}
+                        className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                          student.status === "Active"
+                            ? "bg-green-50 text-green-600 hover:bg-green-100"
+                            : "bg-slate-100 text-slate-500 hover:bg-slate-200"
+                        }`}
+                      >
+                        {student.status || "Active"}
+                      </button>
+                    </td>
+                    <td className="px-5 py-4">
+                      <button
+                        onClick={() => navigate(`/admin/students/${student.id}`)}
+                        className="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-[#0F2D52] transition"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
