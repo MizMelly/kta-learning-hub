@@ -26,7 +26,8 @@ export default function StudentDashboard() {
           enrollments.getMyCourses(),
         ]);
         setUser(profileRes.data || profileRes);
-        setStudentCourses(coursesRes.data || coursesRes || []);
+        const coursesData = coursesRes.data || coursesRes || [];
+        setStudentCourses(Array.isArray(coursesData) ? coursesData : []);
       } catch (err) {
         setError(err.message || "Failed to load dashboard");
       } finally {
@@ -40,14 +41,18 @@ export default function StudentDashboard() {
     if (!selectedCourse) return;
     try {
       setPaymentLoading(true);
+      // Mock payment
       await enrollments.pay({
         courseId: selectedCourse.id,
         amount: selectedCourse.price,
       });
+      // Then enroll
+      await enrollments.enroll({ courseId: selectedCourse.id });
       setShowPayment(false);
       setPaymentSuccess(true);
       const updated = await enrollments.getMyCourses();
-      setStudentCourses(updated.data || updated || []);
+      const updatedData = updated.data || updated || [];
+      setStudentCourses(Array.isArray(updatedData) ? updatedData : []);
       setTimeout(() => setPaymentSuccess(false), 3000);
     } catch (err) {
       alert("Payment failed: " + (err.message || "Unknown error"));
@@ -96,10 +101,12 @@ export default function StudentDashboard() {
 
       {studentCourses.length === 0 ? (
         <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
-          <p className="text-gray-500">You don't have any courses yet.</p>
+          <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500 text-lg">You don't have any courses yet.</p>
+          <p className="text-gray-400 text-sm mt-1">Browse available courses and enroll to get started.</p>
           <button
             onClick={() => navigate("/student/courses")}
-            className="mt-4 bg-[#0F66B7] text-white px-6 py-2.5 rounded-2xl font-semibold hover:bg-[#09539a] transition"
+            className="mt-5 bg-[#0F66B7] text-white px-6 py-2.5 rounded-2xl font-semibold hover:bg-[#09539a] transition"
           >
             Browse Courses
           </button>
@@ -107,11 +114,11 @@ export default function StudentDashboard() {
       ) : (
         <div className="space-y-6">
           {studentCourses.map((course) => {
-            const isLocked = !course.isPaid && !course.isEnrolled;
             const progress = course.progressPercentage || 0;
             const moduleCount = course.modules?.length || course.moduleCount || 0;
             const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
             const completedCount = course.completedLessons || 0;
+            const hasContent = moduleCount > 0 || lessonCount > 0;
 
             return (
               <div
@@ -128,12 +135,6 @@ export default function StudentDashboard() {
                     </p>
 
                     <div className="flex items-center gap-3 mt-4 flex-wrap">
-                      {isLocked && (
-                        <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-gray-500">
-                          <Lock size={16} />
-                          <span className="font-medium">Locked</span>
-                        </div>
-                      )}
                       <div className="flex items-center gap-1 text-xs text-gray-500">
                         <Layers size={13} />
                         {moduleCount} modules
@@ -143,40 +144,29 @@ export default function StudentDashboard() {
                         <PlayCircle size={13} />
                         {lessonCount} lessons
                       </div>
-                      {!isLocked && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <div className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle2 size={13} />
-                            {completedCount} completed
-                          </div>
-                        </>
-                      )}
+                      <span className="text-gray-300">·</span>
+                      <div className="flex items-center gap-1 text-xs text-green-600">
+                        <CheckCircle2 size={13} />
+                        {completedCount} completed
+                      </div>
                       <span className="text-gray-300">·</span>
                       <span className="text-xl text-gray-500">
                         ₦{(course.price || 0).toLocaleString()}
                       </span>
+                      {!hasContent && (
+                        <span className="ml-2 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-xs font-medium">
+                          Content coming soon
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  {isLocked ? (
-                    <button
-                      onClick={() => {
-                        setSelectedCourse(course);
-                        setShowPayment(true);
-                      }}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
-                    >
-                      Unlock Course
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => navigate(`/student/courses/${course.id}`)}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
-                    >
-                      Continue Learning
-                    </button>
-                  )}
+                  <button
+                    onClick={() => navigate(`/student/courses/${course.id}`)}
+                    className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
+                  >
+                    {hasContent ? "Continue Learning" : "View Course"}
+                  </button>
                 </div>
 
                 {/* Progress */}
@@ -193,8 +183,8 @@ export default function StudentDashboard() {
                   </div>
                 </div>
 
-                {/* Quick lesson buttons for enrolled courses */}
-                {!isLocked && course.modules && (
+                {/* Quick lesson buttons — only if content exists */}
+                {hasContent && course.modules && (
                   <div className="mt-5 pt-5 border-t border-gray-100">
                     <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
                       Jump to a lesson

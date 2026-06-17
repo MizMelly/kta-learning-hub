@@ -9,6 +9,8 @@ import {
   Clock,
   Loader2,
   Lock,
+  ShieldCheck,
+  X,
 } from "lucide-react";
 
 export default function MyCourses() {
@@ -18,6 +20,12 @@ export default function MyCourses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("enrolled");
+
+  // Payment modal state
+  const [showPayment, setShowPayment] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [enrollLoading, setEnrollLoading] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -41,10 +49,49 @@ export default function MyCourses() {
     fetchData();
   }, []);
 
-  const displayedCourses = activeTab === "enrolled" ? enrolledCourses : allCourses;
-
   const isEnrolled = (courseId) =>
     enrolledCourses.some((c) => c.id === courseId || c.courseId === courseId);
+
+  const handleEnroll = async (course) => {
+    if (course.price > 0) {
+      // Paid course — show payment modal
+      setSelectedCourse(course);
+      setShowPayment(true);
+      return;
+    }
+    // Free course — enroll directly
+    try {
+      setEnrollLoading(course.id);
+      await enrollments.enroll({ courseId: course.id });
+      await fetchData();
+      setActiveTab("enrolled");
+    } catch (err) {
+      alert("Enrollment failed: " + (err.message || "Unknown error"));
+    } finally {
+      setEnrollLoading(null);
+    }
+  };
+
+  const handlePayment = async () => {
+    if (!selectedCourse) return;
+    try {
+      setPaymentLoading(true);
+      // Mock payment
+      await enrollments.pay({
+        courseId: selectedCourse.id,
+        amount: selectedCourse.price,
+      });
+      // Then enroll
+      await enrollments.enroll({ courseId: selectedCourse.id });
+      setShowPayment(false);
+      await fetchData();
+      setActiveTab("enrolled");
+    } catch (err) {
+      alert("Payment failed: " + (err.message || "Unknown error"));
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -69,6 +116,8 @@ export default function MyCourses() {
       </div>
     );
   }
+
+  const displayedCourses = activeTab === "enrolled" ? enrolledCourses : allCourses;
 
   return (
     <div className="min-h-screen bg-slate-50 p-5 lg:p-8">
@@ -135,6 +184,7 @@ export default function MyCourses() {
               course.lessonCount ||
               0;
             const completedCount = course.completedLessons || 0;
+            const hasContent = moduleCount > 0 || lessonCount > 0;
 
             return (
               <div
@@ -177,16 +227,24 @@ export default function MyCourses() {
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-4 mt-3">
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <Layers size={13} />
-                        {moduleCount} modules
-                      </div>
-                      <span className="text-gray-300">·</span>
-                      <div className="flex items-center gap-1 text-xs text-gray-500">
-                        <PlayCircle size={13} />
-                        {lessonCount} lessons
-                      </div>
-                      {enrolled && (
+                      {hasContent ? (
+                        <>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Layers size={13} />
+                            {moduleCount} modules
+                          </div>
+                          <span className="text-gray-300">·</span>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <PlayCircle size={13} />
+                            {lessonCount} lessons
+                          </div>
+                        </>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-xs font-medium">
+                          Content coming soon
+                        </span>
+                      )}
+                      {enrolled && hasContent && (
                         <>
                           <span className="text-gray-300">·</span>
                           <div className="flex items-center gap-1 text-xs text-green-600">
@@ -206,7 +264,7 @@ export default function MyCourses() {
                       )}
                     </div>
 
-                    {enrolled && (
+                    {enrolled && hasContent && (
                       <div className="mb-5">
                         <div className="flex justify-between items-center mb-1.5">
                           <span className="text-xs font-medium text-gray-500">Progress</span>
@@ -229,7 +287,7 @@ export default function MyCourses() {
                       </div>
                     )}
 
-                    {enrolled && course.modules && (
+                    {enrolled && hasContent && course.modules && (
                       <div className="space-y-3 mb-5">
                         {course.modules.map((mod) => (
                           <div key={mod.id}>
@@ -260,36 +318,94 @@ export default function MyCourses() {
                       </div>
                     )}
 
-                    <button
-                      onClick={() =>
-                        enrolled
-                          ? navigate(`/student/courses/${courseId}`)
-                          : navigate("/student/dashboard")
-                      }
-                      className="bg-[#0F2D52] text-white rounded-xl px-6 py-2.5 text-sm font-semibold hover:bg-[#1E4A7A] transition-colors shadow-sm flex items-center gap-2"
-                    >
-                      {enrolled ? (
-                        progress === 100 ? (
+                    {enrolled ? (
+                      <button
+                        onClick={() => navigate(`/student/courses/${courseId}`)}
+                        className="bg-[#0F2D52] text-white rounded-xl px-6 py-2.5 text-sm font-semibold hover:bg-[#1E4A7A] transition-colors shadow-sm flex items-center gap-2"
+                      >
+                        {progress === 100 ? (
+                          <>Review Course <span>→</span></>
+                        ) : (
+                          <>Continue Learning <span>→</span></>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEnroll(course)}
+                        disabled={enrollLoading === course.id}
+                        className="bg-[#0F2D52] text-white rounded-xl px-6 py-2.5 text-sm font-semibold hover:bg-[#1E4A7A] transition-colors shadow-sm flex items-center gap-2 disabled:opacity-50"
+                      >
+                        {enrollLoading === course.id ? (
                           <>
-                            Review Course <span>→</span>
+                            <Loader2 size={14} className="animate-spin" />
+                            Enrolling...
                           </>
                         ) : (
                           <>
-                            Continue Learning <span>→</span>
+                            <Lock size={14} />
+                            Enroll Now
                           </>
-                        )
-                      ) : (
-                        <>
-                          <Lock size={14} />
-                          Enroll Now
-                        </>
-                      )}
-                    </button>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {showPayment && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-7 relative">
+            <button
+              onClick={() => setShowPayment(false)}
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600"
+            >
+              <X size={20} />
+            </button>
+
+            <h2 className="text-4xl font-bold text-slate-900 mb-8">Payment</h2>
+
+            <div className="border border-gray-200 rounded-3xl p-5 mb-5">
+              <div className="flex justify-between pb-5 border-b border-gray-100">
+                <span className="text-gray-500">Course</span>
+                <span className="font-medium text-slate-900 text-right">
+                  {selectedCourse?.title}
+                </span>
+              </div>
+              <div className="flex justify-between pt-5">
+                <span className="text-gray-500">Amount</span>
+                <span className="text-5xl font-bold text-[#0F66B7]">
+                  ₦{(selectedCourse?.price || 0).toLocaleString()}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-slate-100 rounded-2xl p-4 flex gap-3 mb-6">
+              <ShieldCheck size={18} className="text-green-600 mt-1 shrink-0" />
+              <p className="text-sm text-gray-500">
+                Simulated checkout for testing. No real payment is taken.
+              </p>
+            </div>
+
+            <button
+              className="w-full bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold hover:bg-[#09539a] transition disabled:opacity-50"
+              onClick={handlePayment}
+              disabled={paymentLoading}
+            >
+              {paymentLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Loader2 size={18} className="animate-spin" />
+                  Processing...
+                </span>
+              ) : (
+                "Complete Payment"
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>
