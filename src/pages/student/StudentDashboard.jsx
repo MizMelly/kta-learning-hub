@@ -147,11 +147,11 @@ export default function StudentDashboard() {
                     </button>
                   ) : (
                     <button
-                      onClick={() => navigate(`/student/course/${course.id}`)}
-                      className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
-                    >
-                      Continue Learning
-                    </button>
+  onClick={() => navigate(`/student/courses/${course.id}`)}
+  className="bg-primary text-primary-foreground px-8 py-3 rounded-2xl font-semibold hover:bg-[#0a376a] transition"
+>
+  Continue Learning
+</button>
                   )}
                 </div>
 
