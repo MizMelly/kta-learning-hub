@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Pencil, Trash2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import { Plus, Loader2, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { courses as coursesApi } from "../../services/api";
 import CreateCourseModal from "../../components/admin/courses/CreateCourseModal";
+
 
 export default function Courses() {
   const [courseList, setCourseList] = useState([]);
