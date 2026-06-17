@@ -8,7 +8,6 @@ import Dashboard from "./pages/admin/Dashboard";
 import Courses from "./pages/admin/Courses";
 import Students from "./pages/admin/Students";
 import Submissions from "./pages/admin/Submissions";
-import Reflections from "./pages/admin/Reflections";
 import Discussions from "./pages/admin/Discussions";
 import LessonBuilder from "./pages/admin/LessonBuilder";
 import CourseDetail from "./pages/admin/CourseDetail";
@@ -32,7 +31,6 @@ function App() {
         <Route path="courses" element={<Courses />} />
         <Route path="students" element={<Students />} />
         <Route path="submissions" element={<Submissions />} />
-        <Route path="reflections" element={<Reflections />} />
         <Route path="discussions" element={<Discussions />} />
         <Route path="/admin/lessons/:lessonId/builder" element={<LessonBuilder />} />
         <Route path="/admin/courses/:courseId" element={<CourseDetail />} />

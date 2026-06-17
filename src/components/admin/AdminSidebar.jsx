@@ -3,7 +3,6 @@ import {
   BookOpen,
   Users,
   FileText,
-  NotebookPen,
   MessageSquare,
   GraduationCap,
   X,
@@ -33,11 +32,6 @@ const links = [
     icon: <FileText size={20} />,
   },
   {
-    name: "Reflections",
-    path: "/admin/reflections",
-    icon: <NotebookPen size={20} />,
-  },
-  {
     name: "Discussions",
     path: "/admin/discussions",
     icon: <MessageSquare size={20} />,
@@ -48,11 +42,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // remove auth data (adjust to your setup)
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    // redirect to login
+    localStorage.removeItem("kta_token");
+    localStorage.removeItem("kta_user");
     navigate("/login");
   };
 
@@ -71,9 +62,9 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
           top-0 left-0
           z-50
           h-screen
-          w-67.5
-          bg-sidebar
-          text-sidebar-foreground
+          w-[270px]
+          bg-[#0F2D52]
+          text-white
           flex flex-col
           transition-transform duration-300
           ${
@@ -92,10 +83,10 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
 
         {/* Logo */}
         <div className="px-5 py-4 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-sidebar-primary flex items-center justify-center">
+          <div className="h-10 w-10 rounded-xl bg-[#E79B23] flex items-center justify-center">
             <GraduationCap
               size={20}
-              className="text-sidebar-primary-foreground"
+              className="text-white"
             />
           </div>
 
@@ -106,7 +97,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
 
         {/* Label */}
         <div className="px-6 py-3">
-          <p className="text-xs uppercase tracking-wider text-slate-400">
+          <p className="text-xs uppercase tracking-wider text-white/40">
             Management
           </p>
         </div>
@@ -121,8 +112,8 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-3 rounded-2xl transition ${
                   isActive
-                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                    : "hover:bg-sidebar-accent"
+                    ? "bg-[#E79B23] text-white font-semibold"
+                    : "text-white/60 hover:bg-white/5 hover:text-white"
                 }`
               }
               onClick={() => setIsOpen(false)}
@@ -134,15 +125,15 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
         </nav>
 
         {/* User + Logout */}
-        <div className="mt-auto border-t border-sidebar-border p-4 space-y-3">
+        <div className="mt-auto border-t border-white/10 p-4 space-y-3">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-sidebar-accent flex items-center justify-center font-semibold">
+            <div className="h-10 w-10 rounded-full bg-white/10 flex items-center justify-center font-semibold text-white">
               AD
             </div>
 
             <div>
-              <p className="font-medium">Admin User</p>
-              <p className="text-xs text-slate-400">
+              <p className="font-medium text-white">Admin User</p>
+              <p className="text-xs text-white/40">
                 admin@ktahub.com
               </p>
             </div>
@@ -151,7 +142,7 @@ export default function AdminSidebar({ isOpen, setIsOpen }) {
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-500/10 transition"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-red-400 hover:bg-red-500/10 transition"
           >
             <LogOut size={18} />
             Logout
