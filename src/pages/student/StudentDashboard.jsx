@@ -41,13 +41,13 @@ export default function StudentDashboard() {
     if (!selectedCourse) return;
     try {
       setPaymentLoading(true);
-      // Mock payment
+      // Step 1: Enroll first (creates enrollment record)
+      await enrollments.enroll({ courseId: selectedCourse.id });
+      // Step 2: Then pay (attaches payment to existing enrollment)
       await enrollments.pay({
         courseId: selectedCourse.id,
         amount: selectedCourse.price,
       });
-      // Then enroll
-      await enrollments.enroll({ courseId: selectedCourse.id });
       setShowPayment(false);
       setPaymentSuccess(true);
       const updated = await enrollments.getMyCourses();
