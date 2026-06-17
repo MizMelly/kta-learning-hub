@@ -47,10 +47,7 @@ function App() {
       </Route>
 
       {/* Lesson page — full screen */}
-      <Route
-        path="/student/courses/:courseId/lessons/:lessonId"
-        element={<LessonPage />}
-      />
+     <Route path="/student/courses/:courseId/lessons/:lessonId" element={<LessonPage />} />
     </Routes>
   );
 }
