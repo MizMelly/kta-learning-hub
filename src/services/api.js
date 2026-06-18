@@ -46,7 +46,7 @@ export const auth = {
 
 // Courses
 export const courses = {
-  getAll: () => apiRequest("/Courses/published"),
+  getAll: (params = "") => apiRequest(`/Courses${params}`),
   getById: (id) => apiRequest(`/Courses/${id}`),
   create: (body) => apiRequest("/Courses", { method: "POST", body }),
   update: (id, body) => apiRequest(`/Courses/${id}`, { method: "PUT", body }),
