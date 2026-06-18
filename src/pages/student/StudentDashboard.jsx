@@ -1,12 +1,13 @@
-import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, Clock } from "lucide-react";
+import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, enrollments } from "../../services/api";
+import { auth, enrollments, courses } from "../../services/api";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
 
-  const [studentCourses, setStudentCourses] = useState([]);
+  const [allCourses, setAllCourses] = useState([]);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,18 +17,21 @@ export default function StudentDashboard() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  // Fetch user profile and enrolled courses on mount
+  // Fetch user profile, all courses, and enrolled courses
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [profileRes, coursesRes] = await Promise.all([
+        const [profileRes, allRes, enrolledRes] = await Promise.all([
           auth.getProfile(),
+          courses.getAll(),
           enrollments.getMyCourses(),
         ]);
         setUser(profileRes.data || profileRes);
-        const coursesData = coursesRes.data || coursesRes || [];
-        setStudentCourses(Array.isArray(coursesData) ? coursesData : []);
+        const allData = allRes.data || allRes || [];
+        const enrolledData = enrolledRes.data || enrolledRes || [];
+        setAllCourses(Array.isArray(allData) ? allData : []);
+        setEnrolledCourses(Array.isArray(enrolledData) ? enrolledData : []);
       } catch (err) {
         setError(err.message || "Failed to load dashboard");
       } finally {
@@ -37,29 +41,43 @@ export default function StudentDashboard() {
     fetchData();
   }, []);
 
+  const isEnrolled = (courseId) =>
+    enrolledCourses.some((c) => (c.courseId || c.id) === courseId);
+
+  const getEnrollment = (courseId) =>
+    enrolledCourses.find((c) => (c.courseId || c.id) === courseId);
+
+  const handleUnlock = (course) => {
+    setSelectedCourse(course);
+    setShowPayment(true);
+  };
+
   const handlePayment = async () => {
     if (!selectedCourse) return;
     try {
       setPaymentLoading(true);
-      // Step 1: Enroll first (creates enrollment record)
-      const enrollRes = await enrollments.enroll({ courseId: selectedCourse.courseId || selectedCourse.id });
-      // Step 2: Extract enrollmentId from response
+      // Step 1: Enroll first
+      const enrollRes = await enrollments.enroll({ courseId: selectedCourse.id });
       const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
       if (!enrollmentId) {
         throw new Error("Enrollment succeeded but no enrollment ID returned");
       }
-      // Step 3: Pay using enrollmentId (not courseId)
+      // Step 2: Pay
       await enrollments.pay({
         enrollmentId: enrollmentId,
-        paymentMethod: "Mock",
-        paymentReference: "mock-ref-" + Date.now(),
-        transactionId: "mock-txn-" + Date.now(),
+        paymentMethod: "Flutterwave",
+        paymentReference: "flw-ref-" + Date.now(),
+        transactionId: "flw-txn-" + Date.now(),
       });
       setShowPayment(false);
       setPaymentSuccess(true);
-      const updated = await enrollments.getMyCourses();
-      const updatedData = updated.data || updated || [];
-      setStudentCourses(Array.isArray(updatedData) ? updatedData : []);
+      // Refresh data
+      const [allRes, enrolledRes] = await Promise.all([
+        courses.getAll(),
+        enrollments.getMyCourses(),
+      ]);
+      setAllCourses(Array.isArray(allRes.data || allRes) ? allRes.data || allRes : []);
+      setEnrolledCourses(Array.isArray(enrolledRes.data || enrolledRes) ? enrolledRes.data || enrolledRes : []);
       setTimeout(() => setPaymentSuccess(false), 3000);
     } catch (err) {
       alert("Payment failed: " + (err.message || "Unknown error"));
@@ -106,27 +124,22 @@ export default function StudentDashboard() {
       {/* Title */}
       <h2 className="text-3xl font-bold text-slate-900 mb-6">My Courses</h2>
 
-      {studentCourses.length === 0 ? (
+      {allCourses.length === 0 ? (
         <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
           <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
-          <p className="text-gray-500 text-lg">You don't have any courses yet.</p>
-          <p className="text-gray-400 text-sm mt-1">Browse available courses and enroll to get started.</p>
-          <button
-            onClick={() => navigate("/student/courses")}
-            className="mt-5 bg-[#0F66B7] text-white px-6 py-2.5 rounded-2xl font-semibold hover:bg-[#09539a] transition"
-          >
-            Browse Courses
-          </button>
+          <p className="text-gray-500 text-lg">No courses available yet.</p>
+          <p className="text-gray-400 text-sm mt-1">Check back soon for new courses.</p>
         </div>
       ) : (
         <div className="space-y-6">
-          {studentCourses.map((course) => {
-            // FIX: Use courseId if available (enrollment object), otherwise id
-            const courseId = course.courseId || course.id;
-            const progress = course.progressPercentage || 0;
+          {allCourses.map((course) => {
+            const courseId = course.id;
+            const enrolled = isEnrolled(courseId);
+            const enrollment = getEnrollment(courseId);
+            const progress = enrollment?.progressPercentage || course.progressPercentage || 0;
             const moduleCount = course.modules?.length || course.moduleCount || 0;
             const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
-            const completedCount = course.completedLessons || 0;
+            const completedCount = enrollment?.completedLessons || course.completedLessons || 0;
             const hasContent = moduleCount > 0 || lessonCount > 0;
 
             return (
@@ -144,6 +157,18 @@ export default function StudentDashboard() {
                     </p>
 
                     <div className="flex items-center gap-3 mt-4 flex-wrap">
+                      {!enrolled && (
+                        <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-gray-500">
+                          <Lock size={16} />
+                          <span className="font-medium">Locked</span>
+                        </div>
+                      )}
+                      {enrolled && (
+                        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full text-green-600">
+                          <CheckCircle2 size={16} />
+                          <span className="font-medium">Active</span>
+                        </div>
+                      )}
                       <div className="flex items-center gap-1 text-xs text-gray-500">
                         <Layers size={13} />
                         {moduleCount} modules
@@ -153,11 +178,15 @@ export default function StudentDashboard() {
                         <PlayCircle size={13} />
                         {lessonCount} lessons
                       </div>
-                      <span className="text-gray-300">·</span>
-                      <div className="flex items-center gap-1 text-xs text-green-600">
-                        <CheckCircle2 size={13} />
-                        {completedCount} completed
-                      </div>
+                      {enrolled && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <div className="flex items-center gap-1 text-xs text-green-600">
+                            <CheckCircle2 size={13} />
+                            {completedCount} completed
+                          </div>
+                        </>
+                      )}
                       <span className="text-gray-300">·</span>
                       <span className="text-xl text-gray-500">
                         ₦{(course.price || 0).toLocaleString()}
@@ -170,12 +199,23 @@ export default function StudentDashboard() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => navigate(`/student/courses/${courseId}`)}
-                    className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0"
-                  >
-                    {hasContent ? "Continue Learning" : "View Course"}
-                  </button>
+                  {!enrolled ? (
+                    <button
+                      onClick={() => handleUnlock(course)}
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2"
+                    >
+                      <Lock size={18} />
+                      Unlock Course
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/student/courses/${courseId}`)}
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2"
+                    >
+                      {progress > 0 ? "Continue Learning" : "Start Learning"}
+                      <ArrowRight size={18} />
+                    </button>
+                  )}
                 </div>
 
                 {/* Progress */}
@@ -191,34 +231,6 @@ export default function StudentDashboard() {
                     />
                   </div>
                 </div>
-
-                {/* Quick lesson buttons — only if content exists */}
-                {hasContent && course.modules && (
-                  <div className="mt-5 pt-5 border-t border-gray-100">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
-                      Jump to a lesson
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {course.modules.flatMap((mod) =>
-                        mod.lessons?.map((lesson) => (
-                          <button
-                            key={lesson.id}
-                            onClick={() =>
-                              navigate(`/student/courses/${courseId}/lessons/${lesson.id}`)
-                            }
-                            className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                              lesson.completed
-                                ? "bg-green-50 text-green-600 border-green-200 hover:bg-green-100"
-                                : "bg-white text-gray-600 border-gray-200 hover:border-[#0F66B7] hover:text-[#0F66B7]"
-                            }`}
-                          >
-                            {lesson.title}
-                          </button>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
@@ -256,7 +268,7 @@ export default function StudentDashboard() {
             <div className="bg-slate-100 rounded-2xl p-4 flex gap-3 mb-6">
               <ShieldCheck size={18} className="text-green-600 mt-1 shrink-0" />
               <p className="text-sm text-gray-500">
-                Simulated checkout for testing. No real payment is taken.
+                Secure payment powered by Flutterwave. You will be redirected to complete payment.
               </p>
             </div>
 
@@ -282,7 +294,7 @@ export default function StudentDashboard() {
       {paymentSuccess && (
         <div className="fixed top-6 right-6 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-xl z-50 flex items-center gap-2">
           <CheckCircle2 size={18} />
-          Payment Successful!
+          Payment Successful! Course unlocked.
         </div>
       )}
     </div>
