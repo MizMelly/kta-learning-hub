@@ -1,16 +1,22 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { lessons, courses, learning, discussions } from "../../services/api";
+import { lessons, courses, learning, discussions, files } from "../../services/api";
 import apiRequest from "../../services/api";
 import {
   Play,
+  Pause,
+  ChevronLeft,
+  ChevronRight,
   CheckCircle2,
+  Circle,
   Star,
   MessageCircle,
   Paperclip,
   Mic,
   FileText,
+  Send,
   BookOpen,
+  Clock,
   Loader2,
   ArrowRight,
   ArrowLeft,
@@ -29,6 +35,24 @@ function getCurrentUser() {
     return userStr ? JSON.parse(userStr) : null;
   } catch {
     return null;
+  }
+}
+
+function markLessonComplete(courseId, lessonId) {
+  try {
+    const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
+    if (!progress[courseId]) {
+      progress[courseId] = { completedLessons: [], percentage: 0 };
+    }
+    if (!progress[courseId].completedLessons.includes(lessonId)) {
+      progress[courseId].completedLessons.push(lessonId);
+    }
+    // Recalculate percentage
+    // We don't know total lessons here, so dashboard will calculate it
+    localStorage.setItem("kta_progress", JSON.stringify(progress));
+    console.log("Lesson marked complete:", courseId, lessonId);
+  } catch (err) {
+    console.error("Failed to save progress:", err);
   }
 }
 
@@ -451,52 +475,43 @@ function DiscussionStep({ lessonId, onComplete }) {
   const fetchComments = async () => {
     try {
       const res = await discussions.getByLesson(lessonId);
-      const data = res.data || res;
-      setComments(Array.isArray(data) ? data : data?.items || data?.comments || []);
+      // Handle multiple response formats
+      let data = res;
+      if (res.data !== undefined) data = res.data;
+      if (res.items !== undefined) data = res.items;
+      if (res.comments !== undefined) data = res.comments;
+      setComments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load comments:", err);
+      setComments([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadComments = async () => {
-      if (isMounted) {
-        setLoading(true);
-      }
-      try {
-        const res = await discussions.getByLesson(lessonId);
-        const data = res.data || res;
-        if (isMounted) {
-          setComments(Array.isArray(data) ? data : data?.items || data?.comments || []);
-        }
-      } catch (err) {
-        console.error("Failed to load comments:", err);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadComments();
-
-    return () => {
-      isMounted = false;
-    };
+    fetchComments();
   }, [lessonId]);
 
   const addComment = async () => {
     if (!newComment.trim()) return;
     try {
-      await discussions.postComment({ lessonId, text: newComment });
+      const currentUser = getCurrentUser();
+      const payload = { 
+        lessonId, 
+        text: newComment,
+        content: newComment,
+        message: newComment,
+        userId: currentUser?.id || currentUser?.userId || currentUser?.Id
+      };
+      console.log("Posting comment with payload:", payload);
+      const res = await discussions.postComment(payload);
+      console.log("Comment response:", res);
       setNewComment("");
       fetchComments();
     } catch (err) {
-      alert("Failed to post comment: " + err.message);
+      console.error("Comment error:", err);
+      alert("Failed to post comment: " + (err.message || "Unknown error. Check console."));
     }
   };
 
@@ -509,7 +524,7 @@ function DiscussionStep({ lessonId, onComplete }) {
         <p className="text-gray-400 text-sm mb-4">{comments.length} comment{comments.length !== 1 ? "s" : ""}</p>
 
         <div className="flex gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold shrink-0">
+          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
             {(getCurrentUser()?.fullName || "S").charAt(0)}
           </div>
           <div className="flex-1">
@@ -538,7 +553,7 @@ function DiscussionStep({ lessonId, onComplete }) {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
                   {(comment.studentName || comment.user?.fullName || "?").charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -665,7 +680,13 @@ function RatingStep({ lessonId, existingRating, onComplete }) {
 }
 
 // ─── Step 8: Complete ────────────────────────────────────────────────────────
-function CompleteStep({ lesson, onNextLesson, onDashboard }) {
+function CompleteStep({ lesson, courseId, lessonId, onNextLesson, onDashboard }) {
+  useEffect(() => {
+    if (courseId && lessonId) {
+      markLessonComplete(courseId, lessonId);
+    }
+  }, [courseId, lessonId]);
+
   return (
     <div className="text-center py-12">
       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -721,8 +742,9 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
+  const [marked, setMarked] = useState(false);
 
-  const fetchLesson = useCallback(async () => {
+  const fetchLesson = async () => {
     try {
       setLoading(true);
       const [lessonRes, courseRes] = await Promise.all([
@@ -736,15 +758,20 @@ export default function LessonPage() {
     } finally {
       setLoading(false);
     }
-  }, [lessonId, courseId]);
+  };
 
   useEffect(() => {
-    // avoid calling setState synchronously inside effect
-    const t = setTimeout(() => {
-      fetchLesson();
-    }, 0);
-    return () => clearTimeout(t);
-  }, [lessonId, courseId, fetchLesson]);
+    fetchLesson();
+  }, [lessonId, courseId]);
+
+  const handleMarkComplete = async () => {
+    try {
+      await learning.complete(lessonId, { step: "lesson" });
+      setMarked(true);
+    } catch (err) {
+      alert("Failed to mark complete: " + err.message);
+    }
+  };
 
   const goToNextStep = () => {
     if (currentStep < STEPS.length - 1) {
@@ -863,7 +890,7 @@ export default function LessonPage() {
             <RatingStep lessonId={lessonId} existingRating={lesson.myRating} onComplete={goToNextStep} />
           )}
           {step.id === "complete" && (
-            <CompleteStep lesson={lesson} onNextLesson={handleNextLesson} onDashboard={handleDashboard} />
+            <CompleteStep lesson={lesson} courseId={courseId} lessonId={lessonId} onNextLesson={handleNextLesson} onDashboard={handleDashboard} />
           )}
         </div>
 

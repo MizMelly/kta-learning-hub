@@ -1,7 +1,16 @@
-import { useState, useEffect } from "react";
 import { ArrowUpRight, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { learning } from "../../../services/api";
 import SubmissionRow from "./SubmissionRow";
+
+function normalizeResponse(res) {
+  if (!res) return [];
+  if (Array.isArray(res)) return res;
+  if (Array.isArray(res.data)) return res.data;
+  if (Array.isArray(res.items)) return res.items;
+  if (Array.isArray(res.results)) return res.results;
+  return [];
+}
 
 export default function RecentSubmissions() {
   const [submissions, setSubmissions] = useState([]);
@@ -11,19 +20,14 @@ export default function RecentSubmissions() {
     const fetchSubmissions = async () => {
       try {
         const [assignmentsRes, reflectionsRes] = await Promise.all([
-          learning.getAllAssignments("?pageSize=3"),
-          learning.getAllReflections("?pageSize=3"),
+          learning.getAllAssignments(),
+          learning.getAllReflections(),
         ]);
-        const assignments = assignmentsRes.data?.items || assignmentsRes.data || assignmentsRes || [];
-        const reflections = reflectionsRes.data?.items || reflectionsRes.data || reflectionsRes || [];
-
-        const all = [
-          ...assignments.map(a => ({ ...a, type: "assignment" })),
-          ...reflections.map(r => ({ ...r, type: "reflection" })),
-        ]
-        .sort((a, b) => new Date(b.createdAt || b.submittedAt) - new Date(a.createdAt || a.submittedAt))
-        .slice(0, 3);
-
+        const assignments = normalizeResponse(assignmentsRes).map(s => ({...s, type: "assignment"}));
+        const reflections = normalizeResponse(reflectionsRes).map(s => ({...s, type: "reflection"}));
+        const all = [...assignments, ...reflections]
+          .sort((a, b) => new Date(b.createdAt || b.submittedAt) - new Date(a.createdAt || a.submittedAt))
+          .slice(0, 3);
         setSubmissions(all);
       } catch (err) {
         console.error("Failed to load submissions:", err);
@@ -34,6 +38,16 @@ export default function RecentSubmissions() {
     };
     fetchSubmissions();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+        <div className="flex justify-center py-8">
+          <Loader2 className="animate-spin text-[#0F2D52]" size={24} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
@@ -47,20 +61,16 @@ export default function RecentSubmissions() {
         </button>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-6">
-          <Loader2 className="animate-spin text-[#0F66B7]" size={24} />
-        </div>
-      ) : submissions.length === 0 ? (
-        <p className="text-gray-400 text-sm text-center py-6">No submissions yet.</p>
+      {submissions.length === 0 ? (
+        <p className="text-gray-400 text-sm text-center py-4">No submissions yet.</p>
       ) : (
-        submissions.map((sub, idx) => (
+        submissions.map((sub, i) => (
           <SubmissionRow
-            key={sub.id}
-            name={sub.studentName || sub.user?.fullName || "Unknown"}
+            key={sub.id || i}
+            name={sub.studentName || sub.student?.fullName || sub.user?.fullName || "Unknown"}
             lesson={sub.lessonTitle || sub.lesson?.title || "Unknown Lesson"}
-            status={sub.status?.toLowerCase() || "pending"}
-            last={idx === submissions.length - 1}
+            status={sub.status || "pending"}
+            last={i === submissions.length - 1}
           />
         ))
       )}
