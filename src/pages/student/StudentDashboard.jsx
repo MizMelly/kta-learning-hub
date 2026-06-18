@@ -2,6 +2,9 @@ import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircl
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, enrollments, courses } from "../../services/api";
+import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
+
+const FLW_PUBLIC_KEY = "FLWPUBK_TEST-51090b4aa0ebefc8f37b147d7176fa8a-X";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -12,7 +15,6 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const [showPayment, setShowPayment] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
@@ -47,43 +49,73 @@ export default function StudentDashboard() {
   const getEnrollment = (courseId) =>
     enrolledCourses.find((c) => (c.courseId || c.id) === courseId);
 
-  const handleUnlock = (course) => {
+  const handleFlutterwavePayment = (course) => {
     setSelectedCourse(course);
-    setShowPayment(true);
-  };
+    setPaymentLoading(true);
 
-  const handlePayment = async () => {
-    if (!selectedCourse) return;
-    try {
-      setPaymentLoading(true);
-      // Step 1: Enroll first
-      const enrollRes = await enrollments.enroll({ courseId: selectedCourse.id });
-      const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
-      if (!enrollmentId) {
-        throw new Error("Enrollment succeeded but no enrollment ID returned");
-      }
-      // Step 2: Pay
-      await enrollments.pay({
-        enrollmentId: enrollmentId,
-        paymentMethod: "Flutterwave",
-        paymentReference: "flw-ref-" + Date.now(),
-        transactionId: "flw-txn-" + Date.now(),
-      });
-      setShowPayment(false);
-      setPaymentSuccess(true);
-      // Refresh data
-      const [allRes, enrolledRes] = await Promise.all([
-        courses.getAll(),
-        enrollments.getMyCourses(),
-      ]);
-      setAllCourses(Array.isArray(allRes.data || allRes) ? allRes.data || allRes : []);
-      setEnrolledCourses(Array.isArray(enrolledRes.data || enrolledRes) ? enrolledRes.data || enrolledRes : []);
-      setTimeout(() => setPaymentSuccess(false), 3000);
-    } catch (err) {
-      alert("Payment failed: " + (err.message || "Unknown error"));
-    } finally {
-      setPaymentLoading(false);
-    }
+    const config = {
+      public_key: FLW_PUBLIC_KEY,
+      tx_ref: "kta-" + Date.now(),
+      amount: course.price || 0,
+      currency: "NGN",
+      payment_options: "card,mobilemoney,ussd",
+      customer: {
+        email: user?.email || user?.Email || "student@kta.com",
+        phone_number: user?.phoneNumber || "",
+        name: user?.fullName || user?.FullName || "Student",
+      },
+      customizations: {
+        title: course.title,
+        description: "Course enrollment payment",
+        logo: "https://kta-learning-hub-2936.vercel.app/logo.png",
+      },
+    };
+
+    const handlePayment = useFlutterwave(config);
+
+    handlePayment({
+      callback: async (response) => {
+        console.log("Flutterwave response:", response);
+        closePaymentModal();
+
+        if (response.status === "successful") {
+          try {
+            // Step 1: Enroll
+            const enrollRes = await enrollments.enroll({ courseId: course.id });
+            const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
+
+            if (enrollmentId) {
+              // Step 2: Record payment
+              await enrollments.pay({
+                enrollmentId: enrollmentId,
+                paymentMethod: "Flutterwave",
+                paymentReference: response.tx_ref,
+                transactionId: response.transaction_id?.toString() || response.tx_ref,
+              });
+            }
+
+            setPaymentSuccess(true);
+            // Refresh data
+            const [allRes, enrolledRes] = await Promise.all([
+              courses.getAll(),
+              enrollments.getMyCourses(),
+            ]);
+            setAllCourses(Array.isArray(allRes.data || allRes) ? allRes.data || allRes : []);
+            setEnrolledCourses(Array.isArray(enrolledRes.data || enrolledRes) ? enrolledRes.data || enrolledRes : []);
+            setTimeout(() => setPaymentSuccess(false), 4000);
+          } catch (err) {
+            alert("Payment recorded but enrollment failed: " + err.message);
+          }
+        } else {
+          alert("Payment was not successful. Please try again.");
+        }
+        setPaymentLoading(false);
+      },
+      onClose: () => {
+        setPaymentLoading(false);
+        console.log("Payment modal closed");
+      },
+    });
   };
 
   if (loading) {
@@ -201,11 +233,12 @@ export default function StudentDashboard() {
 
                   {!enrolled ? (
                     <button
-                      onClick={() => handleUnlock(course)}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2"
+                      onClick={() => handleFlutterwavePayment(course)}
+                      disabled={paymentLoading}
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2 disabled:opacity-50"
                     >
                       <Lock size={18} />
-                      Unlock Course
+                      {paymentLoading ? "Processing..." : "Unlock Course"}
                     </button>
                   ) : (
                     <button
@@ -234,59 +267,6 @@ export default function StudentDashboard() {
               </div>
             );
           })}
-        </div>
-      )}
-
-      {/* Payment Modal */}
-      {showPayment && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-3xl shadow-xl w-full max-w-md p-7 relative">
-            <button
-              onClick={() => setShowPayment(false)}
-              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600"
-            >
-              <X size={20} />
-            </button>
-
-            <h2 className="text-4xl font-bold text-slate-900 mb-8">Payment</h2>
-
-            <div className="border border-gray-200 rounded-3xl p-5 mb-5">
-              <div className="flex justify-between pb-5 border-b border-gray-100">
-                <span className="text-gray-500">Course</span>
-                <span className="font-medium text-slate-900 text-right">
-                  {selectedCourse?.title}
-                </span>
-              </div>
-              <div className="flex justify-between pt-5">
-                <span className="text-gray-500">Amount</span>
-                <span className="text-5xl font-bold text-[#0F66B7]">
-                  ₦{(selectedCourse?.price || 0).toLocaleString()}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-slate-100 rounded-2xl p-4 flex gap-3 mb-6">
-              <ShieldCheck size={18} className="text-green-600 mt-1 shrink-0" />
-              <p className="text-sm text-gray-500">
-                Secure payment powered by Flutterwave. You will be redirected to complete payment.
-              </p>
-            </div>
-
-            <button
-              className="w-full bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold hover:bg-[#09539a] transition disabled:opacity-50"
-              onClick={handlePayment}
-              disabled={paymentLoading}
-            >
-              {paymentLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <Loader2 size={18} className="animate-spin" />
-                  Processing...
-                </span>
-              ) : (
-                "Complete Payment"
-              )}
-            </button>
-          </div>
         </div>
       )}
 
