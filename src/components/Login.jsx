@@ -18,12 +18,13 @@ const Login = () => {
 
     try {
       const response = await auth.login({ email, password });
-      // Store token and user data
-      localStorage.setItem("kta_token", response.data.token);
-      localStorage.setItem("kta_user", JSON.stringify(response.data.user));
+      // api.js now auto-unwraps the backend's { success, message, data } envelope,
+      // so "response" IS the { token, user } object directly — no more response.data
+      localStorage.setItem("kta_token", response.token);
+      localStorage.setItem("kta_user", JSON.stringify(response.user));
 
       // Redirect based on role
-      const user = response.data.user;
+      const user = response.user;
       if (user.role === "Admin") {
         navigate("/admin");
       } else {
