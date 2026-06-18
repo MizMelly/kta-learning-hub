@@ -1,9 +1,17 @@
 const API_BASE = "https://kta-learning-hub-api.onrender.com/api";
 
 // Helper to get token from localStorage
-const getToken = () => localStorage.getItem("kta_token");
+const getToken = () => {
+  try {
+    return localStorage.getItem("kta_token");
+  } catch {
+    return null;
+  }
+};
 
-// Generic fetch wrapper
+// Generic fetch wrapper — automatically unwraps { success, message, data } responses.
+// Every function below now always returns the actual data (array, object, etc.)
+// directly — never the wrapper. Components never need to check res.data again.
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
 
@@ -23,13 +31,25 @@ async function apiRequest(endpoint, options = {}) {
   }
 
   const response = await fetch(url, config);
-  const data = await response.json();
 
-  if (!response.ok) {
-    throw new Error(data.message || "Something went wrong");
+  let json;
+  try {
+    json = await response.json();
+  } catch {
+    json = null;
   }
 
-  return data;
+  if (!response.ok) {
+    throw new Error(json?.message || `Request failed (${response.status})`);
+  }
+
+  // Backend wraps everything as { success, message, data }.
+  // If "data" key exists (even if null), return it. Otherwise return the raw json.
+  if (json && typeof json === "object" && "data" in json) {
+    return json.data;
+  }
+
+  return json;
 }
 
 // Auth
