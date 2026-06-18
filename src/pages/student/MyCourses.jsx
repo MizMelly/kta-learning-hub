@@ -102,17 +102,20 @@ export default function MyCourses() {
         </div>
       ) : (
         <div className="space-y-4">
-          {enrolledCourses.map((course) => {
-            const courseId = course.courseId || course.id;
+          {enrolledCourses.map((enrollment) => {
+            const courseId = enrollment.courseId || enrollment.id;
             const details = courseDetails[courseId];
 
+            // FIX: Use backend progress from enrollment
+            const progress = Math.round(enrollment.progressPercentage || 0);
+            const isCompleted = enrollment.status === "Completed";
+            const isActive = enrollment.status === "Active";
+
             // Use course details if available, otherwise fall back to enrollment data
-            const moduleCount = details?.modules?.length || course.moduleCount || 0;
-            const lessonCount = details?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
-            const completedCount = course.completedLessons || 0;
-            const progress = lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
+            const moduleCount = details?.modules?.length || enrollment.moduleCount || 0;
+            const lessonCount = details?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || enrollment.lessonCount || 0;
             const hasContent = moduleCount > 0 || lessonCount > 0;
-            const instructor = details?.instructorName || course.instructor || "KTA Learning Hub";
+            const instructor = details?.instructorName || enrollment.instructor || "KTA Learning Hub";
 
             return (
               <div
@@ -131,7 +134,7 @@ export default function MyCourses() {
                     <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
                       <div>
                         <h2 className="text-base font-bold text-[#0B1F3A] leading-snug">
-                          {course.title}
+                          {enrollment.courseTitle || enrollment.title}
                         </h2>
                         <p className="text-gray-400 text-xs mt-0.5">
                           {instructor}
@@ -139,12 +142,14 @@ export default function MyCourses() {
                       </div>
                       <span
                         className={`self-start px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
-                          progress === 100
+                          isCompleted
                             ? "bg-green-50 text-green-600"
-                            : "bg-blue-50 text-blue-600"
+                            : isActive
+                            ? "bg-blue-50 text-blue-600"
+                            : "bg-amber-50 text-amber-600"
                         }`}
                       >
-                        {progress === 100 ? "Completed" : "In Progress"}
+                        {isCompleted ? "Completed" : isActive ? "In Progress" : "Locked"}
                       </span>
                     </div>
 
@@ -169,14 +174,14 @@ export default function MyCourses() {
                       <span className="text-gray-300">·</span>
                       <div className="flex items-center gap-1 text-xs text-green-600">
                         <CheckCircle2 size={13} />
-                        {completedCount} completed
+                        {progress}% completed
                       </div>
-                      {course.duration && (
+                      {enrollment.duration && (
                         <>
                           <span className="text-gray-300">·</span>
                           <div className="flex items-center gap-1 text-xs text-gray-500">
                             <Clock size={13} />
-                            {course.duration}
+                            {enrollment.duration}
                           </div>
                         </>
                       )}
@@ -201,9 +206,9 @@ export default function MyCourses() {
                       onClick={() => navigate(`/student/courses/${courseId}`)}
                       className="bg-[#0F2D52] text-white rounded-xl px-6 py-2.5 text-sm font-semibold hover:bg-[#1E4A7A] transition-colors shadow-sm flex items-center gap-2"
                     >
-                      {progress === 100 ? (
+                      {isCompleted ? (
                         <>Review Course <ArrowRight size={14} /></>
-                      ) : progress > 0 || completedCount > 0 ? (
+                      ) : progress > 0 ? (
                         <>Continue Learning <ArrowRight size={14} /></>
                       ) : (
                         <>Start Learning <ArrowRight size={14} /></>

@@ -6,30 +6,6 @@ import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 
 const FLW_PUBLIC_KEY = "FLWPUBK_TEST-51090b4aa0ebefc8f37b147d7176fa8a-X";
 
-function getCourseProgress(courseId) {
-  try {
-    const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
-    return progress[courseId] || { completedLessons: [], percentage: 0 };
-  } catch {
-    return { completedLessons: [], percentage: 0 };
-  }
-}
-
-function markLessonComplete(courseId, lessonId) {
-  try {
-    const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
-    if (!progress[courseId]) {
-      progress[courseId] = { completedLessons: [], percentage: 0 };
-    }
-    if (!progress[courseId].completedLessons.includes(lessonId)) {
-      progress[courseId].completedLessons.push(lessonId);
-    }
-    localStorage.setItem("kta_progress", JSON.stringify(progress));
-  } catch (err) {
-    console.error("Failed to save progress:", err);
-  }
-}
-
 export default function StudentDashboard() {
   const navigate = useNavigate();
 
@@ -43,7 +19,7 @@ export default function StudentDashboard() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  // FIX: useFlutterwave must be at top level, not inside function
+  // FIX: useFlutterwave at top level with dynamic config
   const [flutterwaveConfig, setFlutterwaveConfig] = useState(null);
   const handleFlutterwavePayment = useFlutterwave(flutterwaveConfig || {
     public_key: FLW_PUBLIC_KEY,
@@ -55,6 +31,7 @@ export default function StudentDashboard() {
     customizations: { title: "", description: "", logo: "" }
   });
 
+  // Fetch user profile, all courses, and enrolled courses
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -109,6 +86,7 @@ export default function StudentDashboard() {
     setFlutterwaveConfig(config);
   };
 
+  // Handle payment when config changes
   useEffect(() => {
     if (!flutterwaveConfig || !paymentLoading) return;
 
@@ -221,11 +199,15 @@ export default function StudentDashboard() {
             const courseId = course.id;
             const enrolled = isEnrolled(courseId);
             const enrollment = getEnrollment(courseId);
-            const localProgress = getCourseProgress(courseId);
+
+            // FIX: Use backend progress from enrollment
+            const progress = Math.round(enrollment?.progressPercentage || 0);
+            const isCompleted = enrollment?.status === "Completed";
+            const isActive = enrollment?.status === "Active";
+            const isLocked = enrollment?.status === "Locked";
+
             const moduleCount = course.modules?.length || course.moduleCount || 0;
             const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
-            const completedCount = localProgress.completedLessons.length || enrollment?.completedLessons || 0;
-            const progress = lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
             const hasContent = moduleCount > 0 || lessonCount > 0;
 
             return (
@@ -249,10 +231,22 @@ export default function StudentDashboard() {
                           <span className="font-medium">Locked</span>
                         </div>
                       )}
-                      {enrolled && (
+                      {enrolled && isLocked && (
+                        <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-full text-amber-600">
+                          <Lock size={16} />
+                          <span className="font-medium">Payment Required</span>
+                        </div>
+                      )}
+                      {enrolled && isActive && (
                         <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full text-green-600">
                           <CheckCircle2 size={16} />
                           <span className="font-medium">Active</span>
+                        </div>
+                      )}
+                      {enrolled && isCompleted && (
+                        <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full text-blue-600">
+                          <CheckCircle2 size={16} />
+                          <span className="font-medium">Completed</span>
                         </div>
                       )}
                       <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -264,15 +258,6 @@ export default function StudentDashboard() {
                         <PlayCircle size={13} />
                         {lessonCount} lessons
                       </div>
-                      {enrolled && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <div className="flex items-center gap-1 text-xs text-green-600">
-                            <CheckCircle2 size={13} />
-                            {completedCount} completed
-                          </div>
-                        </>
-                      )}
                       <span className="text-gray-300">·</span>
                       <span className="text-xl text-gray-500">
                         ₦{(course.price || 0).toLocaleString()}
@@ -294,6 +279,15 @@ export default function StudentDashboard() {
                       <Lock size={18} />
                       {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Unlock Course"}
                     </button>
+                  ) : isLocked ? (
+                    <button
+                      onClick={() => initiatePayment(course)}
+                      disabled={paymentLoading}
+                      className="bg-[#E79B23] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#C87E08] transition flex-shrink-0 flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <Lock size={18} />
+                      {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Complete Payment"}
+                    </button>
                   ) : (
                     <button
                       onClick={() => navigate(`/student/courses/${courseId}`)}
@@ -305,19 +299,21 @@ export default function StudentDashboard() {
                   )}
                 </div>
 
-                {/* Progress */}
-                <div className="mt-6">
-                  <div className="flex justify-between text-sm text-gray-500 mb-2">
-                    <span>Progress</span>
-                    <span>{progress}%</span>
+                {/* Progress - only show for active/completed enrollments */}
+                {enrolled && !isLocked && (
+                  <div className="mt-6">
+                    <div className="flex justify-between text-sm text-gray-500 mb-2">
+                      <span>Progress</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#0F66B7] rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
-                  <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-[#0F66B7] rounded-full transition-all"
-                      style={{ width: `${progress}%` }}
-                    />
-                  </div>
-                </div>
+                )}
               </div>
             );
           })}
