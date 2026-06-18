@@ -156,6 +156,10 @@ export default function LessonBuilder() {
   const handleFileUpload = async (file, type) => {
     if (!file) return null;
     const uploadType = type === "resource" ? "document" : type;
+
+    // Safety check for API_BASE
+    const baseUrl = API_BASE || "https://kta-learning-hub-api.onrender.com/api";
+
     setUploading((prev) => ({ ...prev, [type]: true }));
     setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
 
@@ -191,7 +195,7 @@ export default function LessonBuilder() {
         xhr.addEventListener("error", () => reject(new Error("Network error")));
         xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
 
-        xhr.open("POST", `${API_BASE}/files/upload/${uploadType}`);
+        xhr.open("POST", baseUrl + "/files/upload/" + uploadType);
         if (token) {
           xhr.setRequestHeader("Authorization", `Bearer ${token}`);
         }
@@ -207,12 +211,11 @@ export default function LessonBuilder() {
   };
 
   const onVideoSelect = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const url = await handleFileUpload(file, "video");
-  console.log("Upload returned URL:", url);  // ← Add this
-  if (url) setContent((prev) => ({ ...prev, videoUrl: url }));
-};
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = await handleFileUpload(file, "video");
+    if (url) setContent((prev) => ({ ...prev, videoUrl: url }));
+  };
 
   const onAudioSelect = async (e) => {
     const file = e.target.files[0];
