@@ -10,8 +10,9 @@ export default function CoursesSection() {
   useEffect(() => {
     const fetchCourses = async () => {
       try {
-        const res = await courses.getAll();
-        const data = res.data || res || [];
+        // FIX: Use getAllAdmin() to get ALL courses (draft + published) for admin dashboard
+        const res = await courses.getAllAdmin();
+        const data = res?.courses || res || [];
         setCourseList(Array.isArray(data) ? data.slice(0, 4) : []);
       } catch (err) {
         console.error("Failed to load courses:", err);
@@ -42,7 +43,8 @@ export default function CoursesSection() {
               key={course.id}
               image={course.thumbnailUrl || course.image || null}
               title={course.title}
-              subtitle={`${course.modules?.length || course.moduleCount || 0} modules · ${course.lessons?.length || course.lessonCount || 0} lessons`}
+              // FIX: Use totalModules and totalLessons from backend CourseResponse
+              subtitle={`${course.totalModules || 0} modules · ${course.totalLessons || 0} lessons`}
             />
           ))}
         </div>
