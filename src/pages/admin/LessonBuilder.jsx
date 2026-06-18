@@ -320,15 +320,15 @@ export default function LessonBuilder() {
   const handlePublish = async (status) => {
   setSaving(true);
   try {
-    // Capitalize first letter to match backend enum: "published" → "Published"
+    // Capitalize first letter to match backend enum
     const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
     
     await apiRequest(`/lessons/${lessonId}/publish`, {
       method: "PUT",
-      body: { Status: capitalizedStatus },  // ← PascalCase key AND value
+      body: { Status: capitalizedStatus },  // ← PascalCase: Status, not status
     });
     
-    setPublishStatus(status); // Keep UI lowercase for consistency
+    setPublishStatus(status);
     showSuccess();
   } catch (err) { 
     setError(err.message); 
