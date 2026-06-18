@@ -201,13 +201,16 @@ export default function StudentDashboard() {
             const enrollment = getEnrollment(courseId);
 
             // FIX: Use backend progress from enrollment
-            const progress = Math.round(enrollment?.progressPercentage || 0);
-            const isCompleted = enrollment?.status === "Completed";
-            const isActive = enrollment?.status === "Active";
-            const isLocked = enrollment?.status === "Locked";
+            const progress = Math.round(enrollment?.progressPercentage || enrollment?.ProgressPercentage || 0);
+            const status = (enrollment?.status || enrollment?.Status || "").toLowerCase();
+            const isCompleted = status === "completed";
+            const isActive = status === "active";
+            const isLocked = status === "locked";
 
-            const moduleCount = course.modules?.length || course.moduleCount || 0;
-            const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
+            // FIX: Use correct field names from backend CourseResponse
+            // Backend returns TotalModules / TotalLessons (PascalCase -> camelCase in JSON)
+            const moduleCount = course.totalModules ?? course.TotalModules ?? course.modules?.length ?? course.moduleCount ?? 0;
+            const lessonCount = course.totalLessons ?? course.TotalLessons ?? course.lessonCount ?? 0;
             const hasContent = moduleCount > 0 || lessonCount > 0;
 
             return (
@@ -221,7 +224,7 @@ export default function StudentDashboard() {
                       {course.title}
                     </h3>
                     <p className="text-gray-400 text-sm mt-1">
-                      {course.instructor || "KTA Learning Hub"}
+                      {course.instructor || course.instructorName || "KTA Learning Hub"}
                     </p>
 
                     <div className="flex items-center gap-3 mt-4 flex-wrap">
@@ -299,7 +302,7 @@ export default function StudentDashboard() {
                   )}
                 </div>
 
-                {/* Progress - only show for active/completed enrollments */}
+                {/* Progress - show for all enrolled courses that are not locked */}
                 {enrolled && !isLocked && (
                   <div className="mt-6">
                     <div className="flex justify-between text-sm text-gray-500 mb-2">
