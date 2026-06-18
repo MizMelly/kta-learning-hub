@@ -200,10 +200,11 @@ export default function LessonBuilder() {
     const url = await handleFileUpload(file, "resource");
     if (url) {
       const newRes = { name: file.name, url };
-      setResourcesList((prev) => [...prev, newRes]);
+      const updatedList = [...resourcesList, newRes];
+      setResourcesList(updatedList);
       setContent((prev) => ({
         ...prev,
-        downloadableResourceUrls: JSON.stringify([...resourcesList, newRes]),
+        downloadableResourceUrls: JSON.stringify(updatedList),
       }));
     }
   };
