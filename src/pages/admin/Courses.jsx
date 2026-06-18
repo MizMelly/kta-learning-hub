@@ -1,9 +1,8 @@
 import { useState, useEffect } from "react";
-import { Plus, Loader2, Pencil, Trash2, ChevronRight } from "lucide-react";
+import { Plus, Loader2, Trash2, ChevronRight, Globe, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { courses as coursesApi } from "../../services/api";
 import CreateCourseModal from "../../components/admin/courses/CreateCourseModal";
-
 
 export default function Courses() {
   const [courseList, setCourseList] = useState([]);
@@ -11,21 +10,24 @@ export default function Courses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [publishing, setPublishing] = useState({});
 
   const fetchCourses = async () => {
-  try {
-    setLoading(true);
-    setError(null);
-    const res = await coursesApi.getAll();
-    setCourseList(Array.isArray(res) ? res : []);
-  } catch (err) {
-    console.error("Fetch courses error:", err);
-    setError(err.message || "Failed to load courses");
-    setCourseList([]); // Always set to empty array, never undefined
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await coursesApi.getAll();
+      // Handle paginated response or direct array
+      const courses = res?.courses || res || [];
+      setCourseList(Array.isArray(courses) ? courses : []);
+    } catch (err) {
+      console.error("Fetch courses error:", err);
+      setError(err.message || "Failed to load courses");
+      setCourseList([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchCourses();
@@ -39,6 +41,40 @@ export default function Courses() {
     } catch (err) {
       alert("Failed to delete: " + err.message);
     }
+  };
+
+  const handlePublishToggle = async (course) => {
+    const newStatus = course.status?.toLowerCase() === "published" ? "Draft" : "Published";
+    setPublishing((prev) => ({ ...prev, [course.id]: true }));
+    try {
+      await coursesApi.update(course.id, { Status: newStatus });
+      // Update local state
+      setCourseList((prev) =>
+        prev.map((c) =>
+          c.id === course.id ? { ...c, status: newStatus } : c
+        )
+      );
+    } catch (err) {
+      alert("Failed to update status: " + err.message);
+    } finally {
+      setPublishing((prev) => ({ ...prev, [course.id]: false }));
+    }
+  };
+
+  const getStatusBadge = (status) => {
+    const isPublished = status?.toLowerCase() === "published";
+    return (
+      <span
+        className={`text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0 flex items-center gap-1 ${
+          isPublished
+            ? "bg-green-100 text-green-700"
+            : "bg-amber-100 text-amber-700"
+        }`}
+      >
+        {isPublished ? <Globe size={12} /> : <Lock size={12} />}
+        {isPublished ? "Published" : "Draft"}
+      </span>
+    );
   };
 
   return (
@@ -55,7 +91,7 @@ export default function Courses() {
 
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-[#0F66B7] text-[#0F66B7]-foreground px-5 py-3 rounded-2xl font-semibold hover:opacity-90 transition"
+          className="flex items-center gap-2 bg-[#0F66B7] text-white px-5 py-3 rounded-2xl font-semibold hover:opacity-90 transition"
         >
           <Plus size={18} />
           Create Course
@@ -75,7 +111,7 @@ export default function Courses() {
           <p className="text-gray-500 mb-4">No courses yet.</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="bg-[#0F66B7] text-[#0F66B7]-foreground px-6 py-2.5 rounded-2xl font-semibold"
+            className="bg-[#0F66B7] text-white px-6 py-2.5 rounded-2xl font-semibold"
           >
             Create your first course
           </button>
@@ -91,15 +127,7 @@ export default function Courses() {
                 <h3 className="text-lg font-semibold text-[#0B1F3A] leading-snug">
                   {course.title}
                 </h3>
-                <span
-                  className={`text-xs font-semibold px-3 py-1 rounded-full flex-shrink-0 ${
-                    course.isPublished
-                      ? "bg-green-100 text-green-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {course.isPublished ? "Published" : "Draft"}
-                </span>
+                {getStatusBadge(course.status)}
               </div>
 
               <p className="text-sm text-gray-500 mb-4">
@@ -111,20 +139,42 @@ export default function Courses() {
                   ₦{(course.price || 0).toLocaleString()}
                 </span>
                 <div className="flex gap-2">
-  <button
-    onClick={() => navigate(`/admin/courses/${course.id}`)}
-    className="p-2 rounded-xl hover:bg-blue-50 text-[#0F2D52] transition"
-    title="View modules & lessons"
-  >
-    <ChevronRight size={16} />
-  </button>
-  <button
-    onClick={() => handleDelete(course.id)}
-    className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
-  >
-    <Trash2 size={16} />
-  </button>
-</div>
+                  <button
+                    onClick={() => handlePublishToggle(course)}
+                    disabled={publishing[course.id]}
+                    className={`p-2 rounded-xl transition disabled:opacity-50 ${
+                      course.status?.toLowerCase() === "published"
+                        ? "hover:bg-amber-50 text-amber-600"
+                        : "hover:bg-green-50 text-green-600"
+                    }`}
+                    title={
+                      course.status?.toLowerCase() === "published"
+                        ? "Unpublish"
+                        : "Publish"
+                    }
+                  >
+                    {publishing[course.id] ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : course.status?.toLowerCase() === "published" ? (
+                      <Lock size={16} />
+                    ) : (
+                      <Globe size={16} />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => navigate(`/admin/courses/${course.id}`)}
+                    className="p-2 rounded-xl hover:bg-blue-50 text-[#0F2D52] transition"
+                    title="View modules & lessons"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(course.id)}
+                    className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
