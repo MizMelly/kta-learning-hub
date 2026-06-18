@@ -28,6 +28,16 @@ import {
   ThumbsUp,
 } from "lucide-react";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function getCurrentUser() {
+  try {
+    const userStr = localStorage.getItem("kta_user");
+    return userStr ? JSON.parse(userStr) : null;
+  } catch {
+    return null;
+  }
+}
+
 const STEPS = [
   { id: "video", label: "Video", icon: Play },
   { id: "notes", label: "Notes", icon: BookOpen },
@@ -104,8 +114,7 @@ function NotesStep({ notes, onComplete }) {
   }
 
   const renderNotes = (text) => {
-    const lines = text.trim().split("
-");
+    const lines = text.trim().split("\n");
     return lines.map((line, i) => {
       if (line.startsWith("## "))
         return <h2 key={i} className="text-xl font-bold text-[#0B1F3A] mt-6 mb-3">{line.replace("## ", "")}</h2>;
@@ -482,7 +491,7 @@ function DiscussionStep({ lessonId, onComplete }) {
 
         <div className="flex gap-3 mb-6">
           <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-            {(user?.fullName || "S").charAt(0)}
+            {(getCurrentUser()?.fullName || "S").charAt(0)}
           </div>
           <div className="flex-1">
             <textarea
