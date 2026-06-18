@@ -153,6 +153,20 @@ export default function LessonBuilder() {
 
   const [uploadProgress, setUploadProgress] = useState({ video: 0, audio: 0, resource: 0 });
 
+  // Helper to show progress even for fast uploads
+  const animateProgress = (type, targetPercent) => {
+    setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
+    let current = 0;
+    const interval = setInterval(() => {
+      current += 5;
+      if (current >= targetPercent) {
+        current = targetPercent;
+        clearInterval(interval);
+      }
+      setUploadProgress((prev) => ({ ...prev, [type]: current }));
+    }, 50);
+  };
+
   const handleFileUpload = async (file, type) => {
     if (!file) return null;
     const uploadType = type === "resource" ? "document" : type;
@@ -174,7 +188,12 @@ export default function LessonBuilder() {
         xhr.upload.addEventListener("progress", (event) => {
           if (event.lengthComputable) {
             const percent = Math.round((event.loaded / event.total) * 100);
-            setUploadProgress((prev) => ({ ...prev, [type]: percent }));
+            // For small files (< 1MB), use animation instead of real progress
+            if (event.total < 1024 * 1024) {
+              animateProgress(type, percent);
+            } else {
+              setUploadProgress((prev) => ({ ...prev, [type]: percent }));
+            }
           }
         });
 
@@ -237,12 +256,9 @@ export default function LessonBuilder() {
       await apiRequest(`/lessons/${lessonId}/content`, {
         method: "PUT",
         body: {
-          title: content.title,
-          description: content.description,
-          duration: content.duration,
-          videoUrl: content.videoUrl,
-          notes: content.notes,
-          resources: content.resources,
+          videoUrl: content.videoUrl || "",
+          lessonNotes: content.notes || "",
+          downloadableResourceUrls: content.resources.map(r => r.url).join(",") || "",
         },
       });
       showSuccess();
@@ -258,7 +274,7 @@ export default function LessonBuilder() {
     try {
       await apiRequest(`/lessons/${lessonId}/audio`, {
         method: "PUT",
-        body: { audioUrl: audio.audioUrl },
+        body: { audioUrl: audio.audioUrl || "" },
       });
       showSuccess();
     } catch (err) {
