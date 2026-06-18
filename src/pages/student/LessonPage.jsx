@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { lessons, courses, learning, discussions, files } from "../../services/api";
+import { lessons, courses, learning, discussions } from "../../services/api";
 import apiRequest from "../../services/api";
 import {
   Play,
-  Pause,
   ChevronLeft,
   ChevronRight,
   CheckCircle2,
@@ -28,31 +27,12 @@ import {
   ThumbsUp,
 } from "lucide-react";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 function getCurrentUser() {
   try {
     const userStr = localStorage.getItem("kta_user");
     return userStr ? JSON.parse(userStr) : null;
   } catch {
     return null;
-  }
-}
-
-function markLessonComplete(courseId, lessonId) {
-  try {
-    const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
-    if (!progress[courseId]) {
-      progress[courseId] = { completedLessons: [], percentage: 0 };
-    }
-    if (!progress[courseId].completedLessons.includes(lessonId)) {
-      progress[courseId].completedLessons.push(lessonId);
-    }
-    // Recalculate percentage
-    // We don't know total lessons here, so dashboard will calculate it
-    localStorage.setItem("kta_progress", JSON.stringify(progress));
-    console.log("Lesson marked complete:", courseId, lessonId);
-  } catch (err) {
-    console.error("Failed to save progress:", err);
   }
 }
 
@@ -100,7 +80,7 @@ function VideoStep({ lesson, onComplete }) {
       </div>
       <div className="flex justify-between items-center">
         <p className="text-sm text-gray-500">
-          {lesson.title} · {lesson.duration}
+          {lesson.title} · {lesson.estimatedDurationMinutes} min
         </p>
         <button
           onClick={onComplete}
@@ -235,6 +215,7 @@ function AssignmentStep({ lessonId, assignmentConfig, onComplete }) {
     try {
       setSubmitting(true);
       let fileUrl = null;
+      let fileName = null;
       if (file) {
         const formData = new FormData();
         formData.append("file", file);
@@ -243,12 +224,14 @@ function AssignmentStep({ lessonId, assignmentConfig, onComplete }) {
           body: formData,
           headers: {},
         });
-        fileUrl = uploadRes.data?.url || uploadRes.url || uploadRes.data;
+        fileUrl = uploadRes?.fileUrl || uploadRes?.url || uploadRes?.data?.fileUrl || uploadRes?.data?.url;
+        fileName = file.name;
       }
       await learning.submitAssignment({
         lessonId,
         textContent: text,
-        fileUrl,
+        documentUrl: fileUrl,
+        documentFileName: fileName,
       });
       setSubmitted(true);
     } catch (err) {
@@ -364,15 +347,21 @@ function ReflectionStep({ lessonId, reflectionConfig, onComplete }) {
         const formData = new FormData();
         formData.append("file", file);
         const uploadRes = await apiRequest("/files/upload/document", { method: "POST", body: formData, headers: {} });
-        fileUrl = uploadRes.data?.url || uploadRes.url || uploadRes.data;
+        fileUrl = uploadRes?.fileUrl || uploadRes?.url || uploadRes?.data?.fileUrl || uploadRes?.data?.url;
       }
       if (voice) {
         const formData = new FormData();
         formData.append("file", voice);
         const uploadRes = await apiRequest("/files/upload/audio", { method: "POST", body: formData, headers: {} });
-        voiceUrl = uploadRes.data?.url || uploadRes.url || uploadRes.data;
+        voiceUrl = uploadRes?.fileUrl || uploadRes?.url || uploadRes?.data?.fileUrl || uploadRes?.data?.url;
       }
-      await learning.submitReflection({ lessonId, textContent: text, fileUrl, voiceUrl });
+      await learning.submitReflection({ 
+        lessonId, 
+        textContent: text, 
+        fileUrl, 
+        voiceUrl,
+        reflectionType: file ? "Document" : voice ? "Voice" : "Text"
+      });
       setSubmitted(true);
     } catch (err) {
       alert("Failed to submit: " + (err.message || "Unknown error"));
@@ -494,14 +483,11 @@ function DiscussionStep({ lessonId, onComplete }) {
       const currentUser = getCurrentUser();
       const payload = { 
         lessonId, 
-        text: newComment,
         content: newComment,
-        message: newComment,
         userId: currentUser?.id || currentUser?.userId || currentUser?.Id
       };
       console.log("Posting comment with payload:", payload);
-      const res = await discussions.postComment(payload);
-      console.log("Comment response:", res);
+      await discussions.postComment(payload);
       setNewComment("");
       fetchComments();
     } catch (err) {
@@ -559,7 +545,7 @@ function DiscussionStep({ lessonId, onComplete }) {
                       </span>
                       <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
                     </div>
-                    <p className="text-sm text-gray-600 leading-relaxed">{comment.text || comment.content}</p>
+                    <p className="text-sm text-gray-600 leading-relaxed">{comment.content || comment.text}</p>
                   </div>
                 </div>
               </div>
@@ -676,12 +662,6 @@ function RatingStep({ lessonId, existingRating, onComplete }) {
 
 // ─── Step 8: Complete ────────────────────────────────────────────────────────
 function CompleteStep({ lesson, courseId, lessonId, onNextLesson, onDashboard }) {
-  useEffect(() => {
-    if (courseId && lessonId) {
-      markLessonComplete(courseId, lessonId);
-    }
-  }, [courseId, lessonId]);
-
   return (
     <div className="text-center py-12">
       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -737,17 +717,20 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [marked, setMarked] = useState(false);
+  const [progress, setProgress] = useState(null);
 
+  // Fetch lesson and progress
   const fetchLesson = async () => {
     try {
       setLoading(true);
-      const [lessonData, courseData] = await Promise.all([
+      const [lessonData, courseData, progressData] = await Promise.all([
         lessons.getStudentLesson(lessonId),
         courses.getById(courseId),
+        learning.getProgress(lessonId),
       ]);
       setLesson(lessonData);
       setCourse(courseData);
+      setProgress(progressData);
     } catch (err) {
       setError(err.message || "Failed to load lesson");
     } finally {
@@ -759,16 +742,23 @@ export default function LessonPage() {
     fetchLesson();
   }, [lessonId, courseId]);
 
-  const handleMarkComplete = async () => {
+  // Mark step complete and update progress
+  const markStepComplete = async (step) => {
     try {
-      await learning.complete(lessonId, { step: "lesson" });
-      setMarked(true);
+      await learning.complete(lessonId, { step });
+      // Update local progress
+      setProgress((prev) => ({
+        ...prev,
+        [`${step}Completed`]: true,
+      }));
     } catch (err) {
-      alert("Failed to mark complete: " + err.message);
+      console.error("Failed to mark step complete:", err);
     }
   };
 
   const goToNextStep = () => {
+    const step = STEPS[currentStep].id;
+    markStepComplete(step);
     if (currentStep < STEPS.length - 1) {
       setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -835,6 +825,21 @@ export default function LessonPage() {
   const step = STEPS[currentStep];
   const StepIcon = step.icon;
 
+  // Build config objects from lesson data (matching backend field names)
+  const assignmentConfig = lesson.hasAssignment ? {
+    enabled: true,
+    instructions: lesson.assignmentInstructions || lesson.assignment?.instructions,
+    submissionType: lesson.assignmentSubmissionType?.toLowerCase() || "both"
+  } : { enabled: false };
+
+  const reflectionConfig = lesson.enableReflection ? {
+    enabled: true,
+    prompt: lesson.reflectionPrompt || "What is the most important insight you gained from this lesson?",
+    allowText: lesson.allowTextReflection,
+    allowVoice: lesson.allowVoiceReflection,
+    allowDocument: lesson.allowDocumentReflection
+  } : { enabled: false };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-3xl mx-auto px-4 py-8 lg:py-12">
@@ -867,22 +872,22 @@ export default function LessonPage() {
             <VideoStep lesson={lesson} onComplete={goToNextStep} />
           )}
           {step.id === "notes" && (
-            <NotesStep notes={lesson.notes} onComplete={goToNextStep} />
+            <NotesStep notes={lesson.lessonNotes} onComplete={goToNextStep} />
           )}
           {step.id === "audio" && (
             <AudioStep audioUrl={lesson.audioUrl} onComplete={goToNextStep} />
           )}
           {step.id === "assignment" && (
-            <AssignmentStep lessonId={lessonId} assignmentConfig={lesson.assignment} onComplete={goToNextStep} />
+            <AssignmentStep lessonId={lessonId} assignmentConfig={assignmentConfig} onComplete={goToNextStep} />
           )}
           {step.id === "reflection" && (
-            <ReflectionStep lessonId={lessonId} reflectionConfig={lesson.reflection} onComplete={goToNextStep} />
+            <ReflectionStep lessonId={lessonId} reflectionConfig={reflectionConfig} onComplete={goToNextStep} />
           )}
           {step.id === "discussion" && (
             <DiscussionStep lessonId={lessonId} onComplete={goToNextStep} />
           )}
           {step.id === "rating" && (
-            <RatingStep lessonId={lessonId} existingRating={lesson.myRating} onComplete={goToNextStep} />
+            <RatingStep lessonId={lessonId} existingRating={lesson.myRating?.rating} onComplete={goToNextStep} />
           )}
           {step.id === "complete" && (
             <CompleteStep lesson={lesson} courseId={courseId} lessonId={lessonId} onNextLesson={handleNextLesson} onDashboard={handleDashboard} />

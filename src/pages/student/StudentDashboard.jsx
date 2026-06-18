@@ -6,7 +6,6 @@ import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 
 const FLW_PUBLIC_KEY = "FLWPUBK_TEST-51090b4aa0ebefc8f37b147d7176fa8a-X";
 
-// ─── Progress Helpers ────────────────────────────────────────────────────────
 function getCourseProgress(courseId) {
   try {
     const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
@@ -44,7 +43,18 @@ export default function StudentDashboard() {
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  // Fetch user profile, all courses, and enrolled courses
+  // FIX: useFlutterwave must be at top level, not inside function
+  const [flutterwaveConfig, setFlutterwaveConfig] = useState(null);
+  const handleFlutterwavePayment = useFlutterwave(flutterwaveConfig || {
+    public_key: FLW_PUBLIC_KEY,
+    tx_ref: "kta-init",
+    amount: 0,
+    currency: "NGN",
+    payment_options: "card",
+    customer: { email: "", phone_number: "", name: "" },
+    customizations: { title: "", description: "", logo: "" }
+  });
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -74,7 +84,7 @@ export default function StudentDashboard() {
   const getEnrollment = (courseId) =>
     enrolledCourses.find((c) => (c.courseId || c.id) === courseId);
 
-  const handleFlutterwavePayment = (course) => {
+  const initiatePayment = (course) => {
     setSelectedCourse(course);
     setPaymentLoading(true);
 
@@ -96,62 +106,70 @@ export default function StudentDashboard() {
       },
     };
 
-    const handlePayment = useFlutterwave(config);
-
-    handlePayment({
-      callback: async (response) => {
-        console.log("Flutterwave full response:", response);
-        closePaymentModal();
-
-        // Check multiple possible success statuses
-        const isSuccess = 
-          response.status === "successful" || 
-          response.status === "completed" || 
-          response.status === "success" ||
-          response.success === true ||
-          response.data?.status === "successful";
-
-        if (isSuccess) {
-          try {
-            // Step 1: Enroll
-            const enrollRes = await enrollments.enroll({ courseId: course.id });
-            const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
-
-            if (enrollmentId) {
-              // Step 2: Record payment
-              await enrollments.pay({
-                enrollmentId: enrollmentId,
-                paymentMethod: "Flutterwave",
-                paymentReference: response.tx_ref || response.data?.tx_ref,
-                transactionId: response.transaction_id?.toString() || response.data?.id?.toString() || response.tx_ref,
-              });
-            }
-
-            setPaymentSuccess(true);
-            // Refresh data
-            const [allData, enrolledData] = await Promise.all([
-              courses.getAll(),
-              enrollments.getMyCourses(),
-            ]);
-            setAllCourses(Array.isArray(allData) ? allData : []);
-            setEnrolledCourses(Array.isArray(enrolledData) ? enrolledData : []);
-            setTimeout(() => setPaymentSuccess(false), 4000);
-          } catch (err) {
-            alert("Payment recorded but enrollment failed: " + err.message);
-          }
-        } else {
-          console.log("Payment status:", response.status);
-          console.log("Payment not successful, response:", response);
-          alert("Payment was not successful. Status: " + (response.status || "unknown"));
-        }
-        setPaymentLoading(false);
-      },
-      onClose: () => {
-        setPaymentLoading(false);
-        console.log("Payment modal closed");
-      },
-    });
+    setFlutterwaveConfig(config);
   };
+
+  useEffect(() => {
+    if (!flutterwaveConfig || !paymentLoading) return;
+
+    const processPayment = async () => {
+      try {
+        handleFlutterwavePayment({
+          callback: async (response) => {
+            console.log("Flutterwave response:", response);
+            closePaymentModal();
+
+            const isSuccess = 
+              response.status === "successful" || 
+              response.status === "completed" || 
+              response.status === "success" ||
+              response.success === true;
+
+            if (isSuccess) {
+              try {
+                const enrollRes = await enrollments.enroll({ courseId: selectedCourse.id });
+                const enrollmentId = enrollRes?.data?.id || enrollRes?.id || enrollRes?.data?.enrollmentId || enrollRes?.enrollmentId;
+
+                if (enrollmentId) {
+                  await enrollments.pay({
+                    enrollmentId: enrollmentId,
+                    paymentMethod: "Flutterwave",
+                    paymentReference: response.tx_ref || response.data?.tx_ref,
+                    transactionId: response.transaction_id?.toString() || response.data?.id?.toString() || response.tx_ref,
+                  });
+                }
+
+                setPaymentSuccess(true);
+                const [allData, enrolledData] = await Promise.all([
+                  courses.getAll(),
+                  enrollments.getMyCourses(),
+                ]);
+                setAllCourses(Array.isArray(allData) ? allData : []);
+                setEnrolledCourses(Array.isArray(enrolledData) ? enrolledData : []);
+                setTimeout(() => setPaymentSuccess(false), 4000);
+              } catch (err) {
+                alert("Payment recorded but enrollment failed: " + err.message);
+              }
+            } else {
+              alert("Payment was not successful. Status: " + (response.status || "unknown"));
+            }
+            setPaymentLoading(false);
+            setFlutterwaveConfig(null);
+          },
+          onClose: () => {
+            setPaymentLoading(false);
+            setFlutterwaveConfig(null);
+          },
+        });
+      } catch (err) {
+        console.error("Payment error:", err);
+        setPaymentLoading(false);
+        setFlutterwaveConfig(null);
+      }
+    };
+
+    processPayment();
+  }, [flutterwaveConfig]);
 
   if (loading) {
     return (
@@ -269,12 +287,12 @@ export default function StudentDashboard() {
 
                   {!enrolled ? (
                     <button
-                      onClick={() => handleFlutterwavePayment(course)}
+                      onClick={() => initiatePayment(course)}
                       disabled={paymentLoading}
                       className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2 disabled:opacity-50"
                     >
                       <Lock size={18} />
-                      {paymentLoading ? "Processing..." : "Unlock Course"}
+                      {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Unlock Course"}
                     </button>
                   ) : (
                     <button
