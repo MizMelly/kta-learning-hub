@@ -16,7 +16,7 @@ export default function Courses() {
   try {
     setLoading(true);
     setError(null);
-    const res = await coursesApi.getAllAdmin();
+    const res = await coursesApi.getAll();
     setCourseList(Array.isArray(res) ? res : []);
   } catch (err) {
     console.error("Fetch courses error:", err);
