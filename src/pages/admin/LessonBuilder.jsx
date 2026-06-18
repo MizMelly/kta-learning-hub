@@ -168,7 +168,9 @@ export default function LessonBuilder() {
         xhr.addEventListener("error", () => reject(new Error("Network error")));
         xhr.open("POST", baseUrl + "/files/upload/" + uploadType);
         if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
-        xhr.send(file);
+        const formData = new FormData();
+        formData.append("file", file);
+        xhr.send(formData);
       });
     } catch (err) {
       alert("Upload failed: " + (err.message || "Unknown error"));
