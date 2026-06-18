@@ -211,12 +211,11 @@ export default function LessonBuilder() {
   };
 
   const onVideoSelect = async (e) => {
-  const file = e.target.files[0];
-  if (!file) return;
-  const url = await handleFileUpload(file, "video");
-  console.log("Upload returned:", typeof url, url);  // ← Check this
-  if (url) setContent((prev) => ({ ...prev, videoUrl: url }));
-};
+    const file = e.target.files[0];
+    if (!file) return;
+    const url = await handleFileUpload(file, "video");
+    if (url) setContent((prev) => ({ ...prev, videoUrl: url }));
+  };
 
   const onAudioSelect = async (e) => {
     const file = e.target.files[0];
