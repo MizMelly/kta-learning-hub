@@ -9,7 +9,6 @@ import {
   PinOff,
   Send,
   Search,
-  Filter,
   X,
 } from "lucide-react";
 import { discussions, courses } from "../../services/api";
@@ -20,7 +19,6 @@ export default function Discussions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
-  const [courseFilter, setCourseFilter] = useState("all");
   const [replyingTo, setReplyingTo] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [saving, setSaving] = useState(false);
@@ -30,7 +28,7 @@ export default function Discussions() {
       setLoading(true);
       const [commentsRes, coursesRes] = await Promise.all([
         discussions.getAll(),
-        courses.getAll(),
+        courses.getAllAdmin(),
       ]);
       const data = commentsRes.data || commentsRes;
       setComments(Array.isArray(data) ? data : data?.items || data?.comments || []);
@@ -47,14 +45,14 @@ export default function Discussions() {
     fetchData();
   }, []);
 
+  // FIX: Filter using correct backend field names
   const filteredComments = comments.filter((c) => {
+    const text = c.content || c.text || "";
+    const name = c.userName || c.studentName || c.user?.fullName || "";
     const matchesSearch =
-      (c.text || "").toLowerCase().includes(search.toLowerCase()) ||
-      (c.studentName || "").toLowerCase().includes(search.toLowerCase());
-    const matchesCourse =
-      courseFilter === "all" ||
-      (c.courseId || c.course?.id) === courseFilter;
-    return matchesSearch && matchesCourse;
+      text.toLowerCase().includes(search.toLowerCase()) ||
+      name.toLowerCase().includes(search.toLowerCase());
+    return matchesSearch;
   });
 
   const handleDelete = async (id) => {
@@ -93,14 +91,15 @@ export default function Discussions() {
     }
   };
 
+  // FIX: Use PascalCase field names matching backend DTO
   const handleReply = async () => {
     if (!replyText.trim() || !replyingTo) return;
     try {
       setSaving(true);
       await discussions.postComment({
-        lessonId: replyingTo.lessonId || replyingTo.lesson?.id,
-        text: replyText,
-        parentCommentId: replyingTo.id,
+        LessonId: replyingTo.lessonId || replyingTo.lesson?.id,
+        Content: replyText,           // ← FIX: was "text", now "Content"
+        ParentCommentId: replyingTo.id,
       });
       setReplyText("");
       setReplyingTo(null);
@@ -122,7 +121,7 @@ export default function Discussions() {
         </p>
       </div>
 
-      {/* Filters */}
+      {/* Search only — course filter removed since CommentResponse has no CourseId */}
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
           <Search
@@ -137,18 +136,6 @@ export default function Discussions() {
             className="w-full pl-11 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2D52] text-sm"
           />
         </div>
-        <select
-          value={courseFilter}
-          onChange={(e) => setCourseFilter(e.target.value)}
-          className="px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2D52] text-sm bg-white"
-        >
-          <option value="all">All Courses</option>
-          {courseList.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.title}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Comments List */}
@@ -180,7 +167,7 @@ export default function Discussions() {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="h-9 w-9 rounded-full bg-[#0F2D52] text-white flex items-center justify-center font-semibold text-sm">
-                      {(comment.studentName || comment.user?.fullName || "?")
+                      {(comment.userName || comment.studentName || comment.user?.fullName || "?")
                         .split(" ")
                         .map((n) => n[0])
                         .join("")
@@ -188,8 +175,9 @@ export default function Discussions() {
                         .slice(0, 2)}
                     </div>
                     <div>
+                      {/* FIX: Use userName from backend CommentResponse */}
                       <p className="font-medium text-[#0B1F3A] text-sm">
-                        {comment.studentName || comment.user?.fullName || "Unknown"}
+                        {comment.userName || comment.studentName || comment.user?.fullName || "Unknown"}
                       </p>
                       <p className="text-xs text-slate-400">
                         {comment.lessonTitle || comment.lesson?.title || "—"} ·{" "}
@@ -210,8 +198,9 @@ export default function Discussions() {
                       </span>
                     )}
                   </div>
+                  {/* FIX: Use content from backend CommentResponse */}
                   <p className="text-slate-700 text-sm leading-relaxed">
-                    {comment.text || comment.content}
+                    {comment.content || comment.text}
                   </p>
                 </div>
               </div>
@@ -263,7 +252,7 @@ export default function Discussions() {
                     <div key={reply.id} className="bg-slate-50 rounded-xl p-3">
                       <div className="flex items-center gap-2 mb-1">
                         <div className="h-7 w-7 rounded-full bg-[#0F2D52] text-white flex items-center justify-center font-semibold text-xs">
-                          {(reply.studentName || reply.user?.fullName || "?")
+                          {(reply.userName || reply.studentName || reply.user?.fullName || "?")
                             .split(" ")
                             .map((n) => n[0])
                             .join("")
@@ -271,7 +260,7 @@ export default function Discussions() {
                             .slice(0, 2)}
                         </div>
                         <p className="text-xs font-medium text-[#0B1F3A]">
-                          {reply.studentName || reply.user?.fullName || "Unknown"}
+                          {reply.userName || reply.studentName || reply.user?.fullName || "Unknown"}
                         </p>
                         <span className="text-xs text-slate-400">
                           {reply.createdAt
@@ -279,7 +268,8 @@ export default function Discussions() {
                             : "—"}
                         </span>
                       </div>
-                      <p className="text-sm text-slate-600">{reply.text || reply.content}</p>
+                      {/* FIX: Use content from backend */}
+                      <p className="text-sm text-slate-600">{reply.content || reply.text}</p>
                     </div>
                   ))}
                 </div>
@@ -308,7 +298,7 @@ export default function Discussions() {
             <p className="text-sm text-slate-500 mb-4">
               Replying to{" "}
               <span className="font-medium text-[#0B1F3A]">
-                {replyingTo.studentName || replyingTo.user?.fullName}
+                {replyingTo.userName || replyingTo.studentName || replyingTo.user?.fullName}
               </span>
             </p>
             <textarea
