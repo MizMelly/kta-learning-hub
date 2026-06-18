@@ -13,16 +13,19 @@ export default function Courses() {
   const [showCreate, setShowCreate] = useState(false);
 
   const fetchCourses = async () => {
-    try {
-      setLoading(true);
-      const res = await coursesApi.getAllAdmin();
-      setCourseList(res.data || res || []);
-    } catch (err) {
-      setError(err.message || "Failed to load courses");
-    } finally {
-      setLoading(false);
-    }
-  };
+  try {
+    setLoading(true);
+    setError(null);
+    const res = await coursesApi.getAllAdmin();
+    setCourseList(Array.isArray(res) ? res : []);
+  } catch (err) {
+    console.error("Fetch courses error:", err);
+    setError(err.message || "Failed to load courses");
+    setCourseList([]); // Always set to empty array, never undefined
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchCourses();
