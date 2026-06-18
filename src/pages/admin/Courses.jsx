@@ -16,8 +16,10 @@ export default function Courses() {
     try {
       setLoading(true);
       setError(null);
-      const res = await coursesApi.getAll();
-      // Handle paginated response or direct array
+      // FIX: Use getAllAdmin() to get ALL courses (draft + published), not just published
+      const res = await coursesApi.getAllAdmin();
+      // Handle paginated response: { courses: [...], totalCount, page, pageSize }
+      // or direct array fallback
       const courses = res?.courses || res || [];
       setCourseList(Array.isArray(courses) ? courses : []);
     } catch (err) {
