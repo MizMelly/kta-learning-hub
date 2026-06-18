@@ -17,6 +17,12 @@ const TABS = [
   { id: "reflections", label: "Reflections", icon: NotebookPen },
 ];
 
+// Assignment statuses from backend enum
+const ASSIGNMENT_STATUSES = [
+  { value: "Approved", label: "Approved" },
+  { value: "NeedsRevision", label: "Needs Revision" },
+];
+
 export default function Submissions() {
   const [activeTab, setActiveTab] = useState("assignments");
   const [items, setItems] = useState([]);
@@ -25,7 +31,7 @@ export default function Submissions() {
 
   const [reviewing, setReviewing] = useState(null);
   const [feedback, setFeedback] = useState("");
-  const [reviewStatus, setReviewStatus] = useState("approved");
+  const [reviewStatus, setReviewStatus] = useState("Approved");
   const [saving, setSaving] = useState(false);
 
   const fetchData = async () => {
@@ -36,7 +42,7 @@ export default function Submissions() {
           ? await learning.getAllAssignments("?status=Pending")
           : await learning.getAllReflections("?status=Pending");
       const data = res.data || res;
-setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
+      setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
     } catch (err) {
       setError(err.message || "Failed to load submissions");
     } finally {
@@ -53,14 +59,15 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
     try {
       setSaving(true);
       if (activeTab === "assignments") {
+        // FIX: Send PascalCase status matching backend enum
         await learning.reviewAssignment(reviewing.id, {
-          status: reviewStatus,
-          feedback,
+          Status: reviewStatus,
+          Feedback: feedback,
         });
       } else {
+        // FIX: Reflections only need AdminComment, no status
         await learning.reviewReflection(reviewing.id, {
-          status: reviewStatus,
-          feedback,
+          AdminComment: feedback,
         });
       }
       setReviewing(null);
@@ -73,12 +80,24 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
     }
   };
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, isReflection = false) => {
+    if (isReflection) {
+      // Reflections use IsReviewed (boolean), not status string
+      const isReviewed = status === true || status === "true";
+      return (
+        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+          isReviewed ? "bg-blue-50 text-blue-600" : "bg-amber-50 text-amber-600"
+        }`}>
+          {isReviewed ? "Reviewed" : "Pending"}
+        </span>
+      );
+    }
+
     const styles = {
       Pending: "bg-amber-50 text-amber-600",
-      Reviewed: "bg-blue-50 text-blue-600",
       Approved: "bg-green-50 text-green-600",
-      "Needs Revision": "bg-red-50 text-red-600",
+      NeedsRevision: "bg-red-50 text-red-600",
+      Rejected: "bg-red-50 text-red-600",
     };
     return (
       <span
@@ -86,10 +105,12 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
           styles[status] || "bg-slate-100 text-slate-500"
         }`}
       >
-        {status}
+        {status === "NeedsRevision" ? "Needs Revision" : status}
       </span>
     );
   };
+
+  const isReflectionTab = activeTab === "reflections";
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6">
@@ -157,7 +178,7 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
                       {item.studentName || item.student?.fullName || "Unknown"}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
-                      {item.courseTitle || item.course?.title || "—"}
+                      {item.courseName || item.course?.title || "—"}
                     </td>
                     <td className="px-5 py-4 text-slate-600">
                       {item.lessonTitle || item.lesson?.title || "—"}
@@ -170,13 +191,18 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
                           : "—"}
                       </div>
                     </td>
-                    <td className="px-5 py-4">{getStatusBadge(item.status)}</td>
+                    <td className="px-5 py-4">
+                      {getStatusBadge(isReflectionTab ? item.isReviewed : item.status, isReflectionTab)}
+                    </td>
                     <td className="px-5 py-4">
                       <button
                         onClick={() => {
                           setReviewing(item);
-                          setFeedback(item.feedback || "");
-                          setReviewStatus(item.status === "Pending" ? "approved" : item.status.toLowerCase());
+                          setFeedback(item.feedback || item.adminComment || "");
+                          // For assignments, set default status based on current status
+                          if (!isReflectionTab) {
+                            setReviewStatus(item.status === "Pending" ? "Approved" : item.status);
+                          }
                         }}
                         className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0F2D52] text-white text-xs font-medium hover:bg-[#1E4A7A] transition"
                       >
@@ -197,7 +223,9 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-3xl shadow-xl w-full max-w-lg p-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-xl font-bold text-[#0B1F3A]">Review Submission</h2>
+              <h2 className="text-xl font-bold text-[#0B1F3A]">
+                Review {isReflectionTab ? "Reflection" : "Assignment"}
+              </h2>
               <button
                 onClick={() => setReviewing(null)}
                 className="p-2 hover:bg-slate-100 rounded-xl text-slate-400"
@@ -216,9 +244,20 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
               <div className="bg-slate-50 rounded-xl p-4">
                 <p className="text-xs text-slate-400 uppercase font-semibold mb-1">Submission</p>
                 <p className="text-sm text-slate-700 whitespace-pre-wrap">
-                  {reviewing.content || reviewing.textContent || reviewing.submissionText || "No content provided."}
+                  {reviewing.textSubmission || reviewing.textContent || reviewing.content || "No content provided."}
                 </p>
               </div>
+              {reviewing.documentUrl && (
+                <a
+                  href={reviewing.documentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-2 text-sm text-[#0F2D52] hover:underline"
+                >
+                  <FileText size={16} />
+                  View attached document
+                </a>
+              )}
               {reviewing.fileUrl && (
                 <a
                   href={reviewing.fileUrl}
@@ -233,33 +272,38 @@ setItems(Array.isArray(data) ? data : data?.items || data?.submissions || []);
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">Status</label>
-                <div className="flex gap-2">
-                  {["approved", "needs revision", "reviewed"].map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setReviewStatus(s)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
-                        reviewStatus === s
-                          ? "bg-[#0F2D52] text-white border-[#0F2D52]"
-                          : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
-                      }`}
-                    >
-                      {s === "needs revision" ? "Needs Revision" : s.charAt(0).toUpperCase() + s.slice(1)}
-                    </button>
-                  ))}
+              {/* Status buttons - ONLY for assignments */}
+              {!isReflectionTab && (
+                <div>
+                  <label className="block text-sm font-medium text-slate-600 mb-2">Status</label>
+                  <div className="flex gap-2">
+                    {ASSIGNMENT_STATUSES.map((s) => (
+                      <button
+                        key={s.value}
+                        onClick={() => setReviewStatus(s.value)}
+                        className={`px-4 py-2 rounded-xl text-sm font-medium border transition-all ${
+                          reviewStatus === s.value
+                            ? "bg-[#0F2D52] text-white border-[#0F2D52]"
+                            : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div>
-                <label className="block text-sm font-medium text-slate-600 mb-2">Feedback</label>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  {isReflectionTab ? "Admin Comment" : "Feedback"}
+                </label>
                 <textarea
                   value={feedback}
                   onChange={(e) => setFeedback(e.target.value)}
                   rows={4}
                   className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0F2D52] resize-none text-sm"
-                  placeholder="Leave feedback for the student..."
+                  placeholder={isReflectionTab ? "Leave a comment for the student..." : "Leave feedback for the student..."}
                 />
               </div>
 
