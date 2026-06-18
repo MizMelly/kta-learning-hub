@@ -158,10 +158,9 @@ export default function LessonBuilder() {
       const formData = new FormData();
       formData.append("file", file);
       const res = await apiRequest(`/files/upload/${type === "resource" ? "document" : type}`, {
-        method: "POST",
-        body: formData,
-        headers: {},
-      });
+  method: "POST",
+  body: formData,
+});
       const url = res.data?.url || res.url || res.data;
       return url;
     } catch (err) {
