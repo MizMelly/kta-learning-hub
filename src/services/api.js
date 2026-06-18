@@ -41,11 +41,11 @@ async function apiRequest(endpoint, options = {}) {
 
 // Auth
 export const auth = {
-  register: (body) => apiRequest("/Auth/register", { method: "POST", body }),
-  login: (body) => apiRequest("/Auth/login", { method: "POST", body }),
-  getProfile: () => apiRequest("/Auth/profile"),
-  updateProfile: (body) => apiRequest("/Auth/profile", { method: "PUT", body }),
-  changePassword: (body) => apiRequest("/Auth/change-password", { method: "POST", body }),
+  register: (body) => apiRequest("/auth/register", { method: "POST", body }),
+  login: (body) => apiRequest("/auth/login", { method: "POST", body }),
+  getProfile: () => apiRequest("/auth/profile"),
+  updateProfile: (body) => apiRequest("/auth/profile", { method: "PUT", body }),
+  changePassword: (body) => apiRequest("/auth/change-password", { method: "POST", body }),
 };
 
 // Courses
