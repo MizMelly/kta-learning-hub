@@ -68,7 +68,7 @@ export default function StudentLayout() {
       {/* Mobile Top Bar */}
       <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#0F2D52] to-[#1E4A7A] flex items-center justify-center text-white font-bold shadow-md">
+          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#0F2D52] to-[#1E4A7A] flex items-center justify-center text-white font-bold shadow-md">
             🎓
           </div>
           <div>
@@ -116,7 +116,7 @@ export default function StudentLayout() {
         {/* Logo */}
         <div className="px-6 py-6 border-b border-white/10">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#E79B23] to-amber-400 flex items-center justify-center shadow-lg">
+            <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-[#E79B23] to-amber-400 flex items-center justify-center shadow-lg">
               🎓
             </div>
             <div>
@@ -154,7 +154,7 @@ export default function StudentLayout() {
         <div className="border-t border-white/10 p-4">
           <div className="bg-white/5 rounded-2xl p-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#E79B23] to-amber-400 flex items-center justify-center text-[#0F2D52] font-bold">
+              <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#E79B23] to-amber-400 flex items-center justify-center text-[#0F2D52] font-bold">
                 {(user?.fullName || "?").charAt(0)}
               </div>
               <div className="flex-1 min-w-0">

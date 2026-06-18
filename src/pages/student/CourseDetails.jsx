@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -23,7 +23,7 @@ export default function CourseDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [courseRes, modulesRes, enrollmentRes] = await Promise.all([
@@ -40,11 +40,11 @@ export default function CourseDetails() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
 
   useEffect(() => {
-    fetchData();
-  }, [courseId]);
+    Promise.resolve().then(fetchData);
+  }, [fetchData]);
 
   const isEnrolled = !!enrollment;
   const progress = enrollment?.progressPercentage || course?.progressPercentage || 0;
@@ -195,7 +195,7 @@ export default function CourseDetails() {
                                   </p>
                                 )}
                               </div>
-                              <div className="flex-shrink-0">
+                              <div className="shrink-0">
                                 {isEnrolled ? (
                                   lesson.completed ? (
                                     <CheckCircle size={24} className="text-green-500" />

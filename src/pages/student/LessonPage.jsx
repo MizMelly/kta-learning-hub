@@ -1,22 +1,16 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { lessons, courses, learning, discussions, files } from "../../services/api";
+import { lessons, courses, learning, discussions } from "../../services/api";
 import apiRequest from "../../services/api";
 import {
   Play,
-  Pause,
-  ChevronLeft,
-  ChevronRight,
   CheckCircle2,
-  Circle,
   Star,
   MessageCircle,
   Paperclip,
   Mic,
   FileText,
-  Send,
   BookOpen,
-  Clock,
   Loader2,
   ArrowRight,
   ArrowLeft,
@@ -467,7 +461,32 @@ function DiscussionStep({ lessonId, onComplete }) {
   };
 
   useEffect(() => {
-    fetchComments();
+    let isMounted = true;
+
+    const loadComments = async () => {
+      if (isMounted) {
+        setLoading(true);
+      }
+      try {
+        const res = await discussions.getByLesson(lessonId);
+        const data = res.data || res;
+        if (isMounted) {
+          setComments(Array.isArray(data) ? data : data?.items || data?.comments || []);
+        }
+      } catch (err) {
+        console.error("Failed to load comments:", err);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadComments();
+
+    return () => {
+      isMounted = false;
+    };
   }, [lessonId]);
 
   const addComment = async () => {
@@ -490,7 +509,7 @@ function DiscussionStep({ lessonId, onComplete }) {
         <p className="text-gray-400 text-sm mb-4">{comments.length} comment{comments.length !== 1 ? "s" : ""}</p>
 
         <div className="flex gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold shrink-0">
             {(getCurrentUser()?.fullName || "S").charAt(0)}
           </div>
           <div className="flex-1">
@@ -519,7 +538,7 @@ function DiscussionStep({ lessonId, onComplete }) {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm shrink-0">
                   {(comment.studentName || comment.user?.fullName || "?").charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -702,9 +721,8 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [marked, setMarked] = useState(false);
 
-  const fetchLesson = async () => {
+  const fetchLesson = useCallback(async () => {
     try {
       setLoading(true);
       const [lessonRes, courseRes] = await Promise.all([
@@ -718,20 +736,15 @@ export default function LessonPage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchLesson();
   }, [lessonId, courseId]);
 
-  const handleMarkComplete = async () => {
-    try {
-      await learning.complete(lessonId, { step: "lesson" });
-      setMarked(true);
-    } catch (err) {
-      alert("Failed to mark complete: " + err.message);
-    }
-  };
+  useEffect(() => {
+    // avoid calling setState synchronously inside effect
+    const t = setTimeout(() => {
+      fetchLesson();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [lessonId, courseId, fetchLesson]);
 
   const goToNextStep = () => {
     if (currentStep < STEPS.length - 1) {

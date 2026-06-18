@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { enrollments } from "../../services/api";
 import {
@@ -17,7 +17,7 @@ export default function MyCourses() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res = await enrollments.getMyCourses();
@@ -28,11 +28,15 @@ export default function MyCourses() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const timer = setTimeout(() => {
+      void fetchData();
+    }, 0);
+
+    return () => clearTimeout(timer);
+  }, [fetchData]);
 
   if (loading) {
     return (
@@ -100,8 +104,8 @@ export default function MyCourses() {
               >
                 <div className="flex flex-col lg:flex-row">
                   {/* Thumbnail */}
-                  <div className="lg:w-44 h-32 lg:h-auto bg-gradient-to-br from-[#0F2D52] via-[#1E4A7A] to-[#0A1E36] flex items-center justify-center flex-shrink-0 relative overflow-hidden">
-                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_50%,_#E79B23_0%,_transparent_50%),radial-gradient(circle_at_80%_20%,_#1E4A7A_0%,_transparent_40%)]" />
+                  <div className="lg:w-44 h-32 lg:h-auto bg-linear-to-br from-[#0F2D52] via-[#1E4A7A] to-[#0A1E36] flex items-center justify-center shrink-0 relative overflow-hidden">
+                    <div className="absolute inset-0 opacity-20 bg-[radial-gradient(circle_at_20%_50%,#E79B23_0%,transparent_50%),radial-gradient(circle_at_80%_20%,#1E4A7A_0%,transparent_40%)]" />
                     <BookOpen size={32} className="text-white/90 relative z-10" />
                   </div>
 
@@ -117,7 +121,7 @@ export default function MyCourses() {
                         </p>
                       </div>
                       <span
-                        className={`self-start px-3 py-1 rounded-full text-xs font-semibold flex-shrink-0 ${
+                        className={`self-start px-3 py-1 rounded-full text-xs font-semibold shrink-0 ${
                           progress === 100
                             ? "bg-green-50 text-green-600"
                             : "bg-blue-50 text-blue-600"
@@ -169,7 +173,7 @@ export default function MyCourses() {
                         </div>
                         <div className="w-full bg-slate-100 rounded-full h-2">
                           <div
-                            className="bg-gradient-to-r from-[#E79B23] to-amber-400 h-2 rounded-full transition-all"
+                            className="bg-linear-to-r from-[#E79B23] to-amber-400 h-2 rounded-full transition-all"
                             style={{ width: `${progress}%` }}
                           />
                         </div>
