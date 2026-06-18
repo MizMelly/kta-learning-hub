@@ -474,12 +474,7 @@ function DiscussionStep({ lessonId, onComplete }) {
 
   const fetchComments = async () => {
     try {
-      const res = await discussions.getByLesson(lessonId);
-      // Handle multiple response formats
-      let data = res;
-      if (res.data !== undefined) data = res.data;
-      if (res.items !== undefined) data = res.items;
-      if (res.comments !== undefined) data = res.comments;
+      const data = await discussions.getByLesson(lessonId);
       setComments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Failed to load comments:", err);
@@ -747,12 +742,12 @@ export default function LessonPage() {
   const fetchLesson = async () => {
     try {
       setLoading(true);
-      const [lessonRes, courseRes] = await Promise.all([
+      const [lessonData, courseData] = await Promise.all([
         lessons.getStudentLesson(lessonId),
         courses.getById(courseId),
       ]);
-      setLesson(lessonRes.data || lessonRes);
-      setCourse(courseRes.data || courseRes);
+      setLesson(lessonData);
+      setCourse(courseData);
     } catch (err) {
       setError(err.message || "Failed to load lesson");
     } finally {

@@ -1,10 +1,35 @@
-import { Lock, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, ArrowRight } from "lucide-react";
+import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, Clock, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, enrollments, courses } from "../../services/api";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 
 const FLW_PUBLIC_KEY = "FLWPUBK_TEST-51090b4aa0ebefc8f37b147d7176fa8a-X";
+
+// ─── Progress Helpers ────────────────────────────────────────────────────────
+function getCourseProgress(courseId) {
+  try {
+    const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
+    return progress[courseId] || { completedLessons: [], percentage: 0 };
+  } catch {
+    return { completedLessons: [], percentage: 0 };
+  }
+}
+
+function markLessonComplete(courseId, lessonId) {
+  try {
+    const progress = JSON.parse(localStorage.getItem("kta_progress") || "{}");
+    if (!progress[courseId]) {
+      progress[courseId] = { completedLessons: [], percentage: 0 };
+    }
+    if (!progress[courseId].completedLessons.includes(lessonId)) {
+      progress[courseId].completedLessons.push(lessonId);
+    }
+    localStorage.setItem("kta_progress", JSON.stringify(progress));
+  } catch (err) {
+    console.error("Failed to save progress:", err);
+  }
+}
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -15,26 +40,25 @@ export default function StudentDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [selectedCourse, setSelectedCourse] = useState(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(null);
-  const [txRef, setTxRef] = useState("");
 
   // Fetch user profile, all courses, and enrolled courses
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [profileRes, allRes, enrolledRes] = await Promise.all([
+        const [profileData, allData, enrolledData] = await Promise.all([
           auth.getProfile(),
           courses.getAll(),
           enrollments.getMyCourses(),
         ]);
-        setUser(profileRes.data || profileRes);
-        const allData = allRes.data || allRes || [];
-        const enrolledData = enrolledRes.data || enrolledRes || [];
-        setAllCourses(Array.isArray(allData) ? allData : []);
-        setEnrolledCourses(Array.isArray(enrolledData) ? enrolledData : []);
+        setUser(profileData);
+        const allCoursesArray = Array.isArray(allData) ? allData : [];
+        const enrolledCoursesArray = Array.isArray(enrolledData) ? enrolledData : [];
+        setAllCourses(allCoursesArray);
+        setEnrolledCourses(enrolledCoursesArray);
       } catch (err) {
         setError(err.message || "Failed to load dashboard");
       } finally {
@@ -50,90 +74,83 @@ export default function StudentDashboard() {
   const getEnrollment = (courseId) =>
     enrolledCourses.find((c) => (c.courseId || c.id) === courseId);
 
-  const config = {
-    public_key: FLW_PUBLIC_KEY,
-    tx_ref: txRef || undefined,
-    amount: selectedCourse?.price || 0,
-    currency: "NGN",
-    payment_options: "card,mobilemoney,ussd,banktransfer",
-    customer: {
-      email: user?.email || user?.Email || "student@kta.com",
-      phone_number: user?.phoneNumber || "",
-      name: user?.fullName || user?.FullName || "Student",
-    },
-    customizations: {
-      title: selectedCourse?.title,
-      description: "Course enrollment payment",
-      logo: "https://kta-learning-hub-2936.vercel.app/logo.png",
-    },
-  };
-
-  const handlePayment = useFlutterwave(config);
-
   const handleFlutterwavePayment = (course) => {
-    // generate tx ref in event handler (allowed) and set selected course
-    const newTxRef = "kta-" + new Date().getTime();
-    setTxRef(newTxRef);
     setSelectedCourse(course);
     setPaymentLoading(true);
 
-    // call the payment handler on next tick so the hook config (which depends on state)
-    // picks up the txRef and selectedCourse
-    setTimeout(() => {
-      handlePayment({
-        callback: async (response) => {
-          console.log("Flutterwave full response:", response);
-          closePaymentModal();
+    const config = {
+      public_key: FLW_PUBLIC_KEY,
+      tx_ref: "kta-" + Date.now(),
+      amount: course.price || 0,
+      currency: "NGN",
+      payment_options: "card,mobilemoney,ussd,banktransfer",
+      customer: {
+        email: user?.email || user?.Email || "student@kta.com",
+        phone_number: user?.phoneNumber || "",
+        name: user?.fullName || user?.FullName || "Student",
+      },
+      customizations: {
+        title: course.title,
+        description: "Course enrollment payment",
+        logo: "https://kta-learning-hub-2936.vercel.app/logo.png",
+      },
+    };
 
-          // Check multiple possible success statuses
-          const isSuccess = 
-            response.status === "successful" || 
-            response.status === "completed" || 
-            response.status === "success" ||
-            response.success === true ||
-            response.data?.status === "successful";
+    const handlePayment = useFlutterwave(config);
 
-          if (isSuccess) {
-            try {
-              // Step 1: Enroll
-              const enrollRes = await enrollments.enroll({ courseId: course.id });
-              const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
+    handlePayment({
+      callback: async (response) => {
+        console.log("Flutterwave full response:", response);
+        closePaymentModal();
 
-              if (enrollmentId) {
-                // Step 2: Record payment
-                await enrollments.pay({
-                  enrollmentId: enrollmentId,
-                  paymentMethod: "Flutterwave",
-                  paymentReference: response.tx_ref || response.data?.tx_ref,
-                  transactionId: response.transaction_id?.toString() || response.data?.id?.toString() || response.tx_ref,
-                });
-              }
+        // Check multiple possible success statuses
+        const isSuccess = 
+          response.status === "successful" || 
+          response.status === "completed" || 
+          response.status === "success" ||
+          response.success === true ||
+          response.data?.status === "successful";
 
-              setPaymentSuccess(true);
-              // Refresh data
-              const [allRes, enrolledRes] = await Promise.all([
-                courses.getAll(),
-                enrollments.getMyCourses(),
-              ]);
-              setAllCourses(Array.isArray(allRes.data || allRes) ? allRes.data || allRes : []);
-              setEnrolledCourses(Array.isArray(enrolledRes.data || enrolledRes) ? enrolledRes.data || enrolledRes : []);
-              setTimeout(() => setPaymentSuccess(false), 4000);
-            } catch (err) {
-              alert("Payment recorded but enrollment failed: " + err.message);
+        if (isSuccess) {
+          try {
+            // Step 1: Enroll
+            const enrollRes = await enrollments.enroll({ courseId: course.id });
+            const enrollmentId = enrollRes.data?.id || enrollRes.id || enrollRes.data?.enrollmentId || enrollRes.enrollmentId;
+
+            if (enrollmentId) {
+              // Step 2: Record payment
+              await enrollments.pay({
+                enrollmentId: enrollmentId,
+                paymentMethod: "Flutterwave",
+                paymentReference: response.tx_ref || response.data?.tx_ref,
+                transactionId: response.transaction_id?.toString() || response.data?.id?.toString() || response.tx_ref,
+              });
             }
-          } else {
-            console.log("Payment status:", response.status);
-            console.log("Payment not successful, response:", response);
-            alert("Payment was not successful. Status: " + (response.status || "unknown"));
+
+            setPaymentSuccess(true);
+            // Refresh data
+            const [allData, enrolledData] = await Promise.all([
+              courses.getAll(),
+              enrollments.getMyCourses(),
+            ]);
+            setAllCourses(Array.isArray(allData) ? allData : []);
+            setEnrolledCourses(Array.isArray(enrolledData) ? enrolledData : []);
+            setTimeout(() => setPaymentSuccess(false), 4000);
+          } catch (err) {
+            alert("Payment recorded but enrollment failed: " + err.message);
           }
-          setPaymentLoading(false);
-        },
-        onClose: () => {
-          setPaymentLoading(false);
-          console.log("Payment modal closed");
-        },
-      });
-    }, 0);
+        } else {
+          console.log("Payment status:", response.status);
+          console.log("Payment not successful, response:", response);
+          alert("Payment was not successful. Status: " + (response.status || "unknown"));
+        }
+        setPaymentLoading(false);
+      },
+      onClose: () => {
+        setPaymentLoading(false);
+        console.log("Payment modal closed");
+      },
+    });
   };
 
   if (loading) {
@@ -172,7 +189,7 @@ export default function StudentDashboard() {
       </div>
 
       {/* Title */}
-      <h2 className="text-3xl font-bold text-slate-900 mb-6">Available Courses</h2>
+      <h2 className="text-3xl font-bold text-slate-900 mb-6">My Courses</h2>
 
       {allCourses.length === 0 ? (
         <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
@@ -186,10 +203,11 @@ export default function StudentDashboard() {
             const courseId = course.id;
             const enrolled = isEnrolled(courseId);
             const enrollment = getEnrollment(courseId);
-            const progress = enrollment?.progressPercentage || course.progressPercentage || 0;
+            const localProgress = getCourseProgress(courseId);
             const moduleCount = course.modules?.length || course.moduleCount || 0;
             const lessonCount = course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
-            const completedCount = enrollment?.completedLessons || course.completedLessons || 0;
+            const completedCount = localProgress.completedLessons.length || enrollment?.completedLessons || 0;
+            const progress = lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
             const hasContent = moduleCount > 0 || lessonCount > 0;
 
             return (
@@ -253,7 +271,7 @@ export default function StudentDashboard() {
                     <button
                       onClick={() => handleFlutterwavePayment(course)}
                       disabled={paymentLoading}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition shrink-0 flex items-center gap-2 disabled:opacity-50"
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2 disabled:opacity-50"
                     >
                       <Lock size={18} />
                       {paymentLoading ? "Processing..." : "Unlock Course"}
@@ -261,7 +279,7 @@ export default function StudentDashboard() {
                   ) : (
                     <button
                       onClick={() => navigate(`/student/courses/${courseId}`)}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition shrink-0 flex items-center gap-2"
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2"
                     >
                       {progress > 0 ? "Continue Learning" : "Start Learning"}
                       <ArrowRight size={18} />

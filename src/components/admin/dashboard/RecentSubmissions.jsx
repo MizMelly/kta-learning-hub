@@ -1,16 +1,7 @@
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { learning } from "../../../services/api";
+import { learning } from "../../services/api";
 import SubmissionRow from "./SubmissionRow";
-
-function normalizeResponse(res) {
-  if (!res) return [];
-  if (Array.isArray(res)) return res;
-  if (Array.isArray(res.data)) return res.data;
-  if (Array.isArray(res.items)) return res.items;
-  if (Array.isArray(res.results)) return res.results;
-  return [];
-}
 
 export default function RecentSubmissions() {
   const [submissions, setSubmissions] = useState([]);
@@ -19,12 +10,12 @@ export default function RecentSubmissions() {
   useEffect(() => {
     const fetchSubmissions = async () => {
       try {
-        const [assignmentsRes, reflectionsRes] = await Promise.all([
+        const [assignmentsData, reflectionsData] = await Promise.all([
           learning.getAllAssignments(),
           learning.getAllReflections(),
         ]);
-        const assignments = normalizeResponse(assignmentsRes).map(s => ({...s, type: "assignment"}));
-        const reflections = normalizeResponse(reflectionsRes).map(s => ({...s, type: "reflection"}));
+        const assignments = Array.isArray(assignmentsData) ? assignmentsData.map(s => ({...s, type: "assignment"})) : [];
+        const reflections = Array.isArray(reflectionsData) ? reflectionsData.map(s => ({...s, type: "reflection"})) : [];
         const all = [...assignments, ...reflections]
           .sort((a, b) => new Date(b.createdAt || b.submittedAt) - new Date(a.createdAt || a.submittedAt))
           .slice(0, 3);
