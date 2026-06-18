@@ -1,6 +1,6 @@
 import { ArrowUpRight, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { learning } from "../../services/api";
+import { learning } from "../../../services/api";
 import SubmissionRow from "./SubmissionRow";
 
 export default function RecentSubmissions() {
