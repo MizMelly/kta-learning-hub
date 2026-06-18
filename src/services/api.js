@@ -9,9 +9,6 @@ const getToken = () => {
   }
 };
 
-// Generic fetch wrapper — automatically unwraps { success, message, data } responses.
-// Every function below now always returns the actual data (array, object, etc.)
-// directly — never the wrapper. Components never need to check res.data again.
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
 
@@ -63,13 +60,13 @@ export const auth = {
 
 // Courses
 export const courses = {
-  getAll: () => apiRequest("/courses/published"),
+  getAll: () => apiRequest("/courses/published"),       
+  getAllAdmin: (params = "") => apiRequest(`/courses${params}`), 
   getById: (id) => apiRequest(`/courses/${id}`),
   create: (body) => apiRequest("/courses", { method: "POST", body }),
   update: (id, body) => apiRequest(`/courses/${id}`, { method: "PUT", body }),
   delete: (id) => apiRequest(`/courses/${id}`, { method: "DELETE" }),
 };
-
 // Modules
 export const modules = {
   getByCourse: (courseId) => apiRequest(`/modules/course/${courseId}`),

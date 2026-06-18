@@ -15,7 +15,7 @@ export default function Courses() {
   const fetchCourses = async () => {
     try {
       setLoading(true);
-      const res = await coursesApi.getAll();
+      const res = await coursesApi.getAllAdmin();
       setCourseList(res.data || res || []);
     } catch (err) {
       setError(err.message || "Failed to load courses");
@@ -42,17 +42,17 @@ export default function Courses() {
     <div className="p-4 sm:p-6 lg:p-8 space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-foreground">
+          <h1 className="text-3xl sm:text-4xl font-bold text-[#0B1F3A]">
             Courses
           </h1>
-          <p className="mt-2 text-muted-foreground">
+          <p className="mt-2 text-gray-500">
             Manage all courses on the platform.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-2 bg-primary text-primary-foreground px-5 py-3 rounded-2xl font-semibold hover:opacity-90 transition"
+          className="flex items-center gap-2 bg-[#0F66B7] text-[#0F66B7]-foreground px-5 py-3 rounded-2xl font-semibold hover:opacity-90 transition"
         >
           <Plus size={18} />
           Create Course
@@ -61,18 +61,18 @@ export default function Courses() {
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="animate-spin text-primary" size={32} />
+          <Loader2 className="animate-spin text-[#0F66B7]" size={32} />
         </div>
       ) : error ? (
         <div className="bg-red-50 text-red-600 rounded-2xl p-5 text-sm">
           {error}
         </div>
       ) : courseList.length === 0 ? (
-        <div className="bg-card rounded-3xl border border-border p-12 text-center">
-          <p className="text-muted-foreground mb-4">No courses yet.</p>
+        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center">
+          <p className="text-gray-500 mb-4">No courses yet.</p>
           <button
             onClick={() => setShowCreate(true)}
-            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-2xl font-semibold"
+            className="bg-[#0F66B7] text-[#0F66B7]-foreground px-6 py-2.5 rounded-2xl font-semibold"
           >
             Create your first course
           </button>
@@ -82,10 +82,10 @@ export default function Courses() {
           {courseList.map((course) => (
             <div
               key={course.id}
-              className="bg-card rounded-3xl border border-border p-6 shadow-sm flex flex-col"
+              className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col"
             >
               <div className="flex items-start justify-between mb-3">
-                <h3 className="text-lg font-semibold text-foreground leading-snug">
+                <h3 className="text-lg font-semibold text-[#0B1F3A] leading-snug">
                   {course.title}
                 </h3>
                 <span
@@ -99,12 +99,12 @@ export default function Courses() {
                 </span>
               </div>
 
-              <p className="text-sm text-muted-foreground mb-4">
+              <p className="text-sm text-gray-500 mb-4">
                 {course.totalModules || 0} modules · {course.totalLessons || 0} lessons
               </p>
 
-              <div className="flex items-center justify-between mt-auto pt-4 border-t border-border">
-                <span className="text-lg font-bold text-foreground">
+              <div className="flex items-center justify-between mt-auto pt-4 border-t border-slate-200">
+                <span className="text-lg font-bold text-[#0B1F3A]">
                   ₦{(course.price || 0).toLocaleString()}
                 </span>
                 <div className="flex gap-2">
