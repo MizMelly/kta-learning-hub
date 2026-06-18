@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { enrollments } from "../../services/api";
+import { enrollments, courses } from "../../services/api";
 import {
   BookOpen,
   CheckCircle2,
@@ -14,6 +14,7 @@ import {
 export default function MyCourses() {
   const navigate = useNavigate();
   const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [courseDetails, setCourseDetails] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,7 +23,23 @@ export default function MyCourses() {
       setLoading(true);
       const res = await enrollments.getMyCourses();
       const data = res.data || res || [];
-      setEnrolledCourses(Array.isArray(data) ? data : []);
+      const enrolledList = Array.isArray(data) ? data : [];
+      setEnrolledCourses(enrolledList);
+
+      // Fetch full course details for each enrolled course to get modules/lessons
+      const detailsMap = {};
+      await Promise.all(
+        enrolledList.map(async (enrollment) => {
+          const courseId = enrollment.courseId || enrollment.id;
+          try {
+            const courseData = await courses.getById(courseId);
+            detailsMap[courseId] = courseData;
+          } catch (err) {
+            console.error("Failed to fetch course details:", courseId, err);
+          }
+        })
+      );
+      setCourseDetails(detailsMap);
     } catch (err) {
       setError(err.message || "Failed to load courses");
     } finally {
@@ -87,15 +104,15 @@ export default function MyCourses() {
         <div className="space-y-4">
           {enrolledCourses.map((course) => {
             const courseId = course.courseId || course.id;
-            const progress = course.progressPercentage || course.progress || 0;
-            const moduleCount = course.modules?.length || course.moduleCount || 0;
-            const lessonCount =
-              course.lessons?.length ||
-              course.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) ||
-              course.lessonCount ||
-              0;
+            const details = courseDetails[courseId];
+
+            // Use course details if available, otherwise fall back to enrollment data
+            const moduleCount = details?.modules?.length || course.moduleCount || 0;
+            const lessonCount = details?.modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || course.lessonCount || 0;
             const completedCount = course.completedLessons || 0;
+            const progress = lessonCount > 0 ? Math.round((completedCount / lessonCount) * 100) : 0;
             const hasContent = moduleCount > 0 || lessonCount > 0;
+            const instructor = details?.instructorName || course.instructor || "KTA Learning Hub";
 
             return (
               <div
@@ -117,7 +134,7 @@ export default function MyCourses() {
                           {course.title}
                         </h2>
                         <p className="text-gray-400 text-xs mt-0.5">
-                          {course.instructor || "KTA Learning Hub"}
+                          {instructor}
                         </p>
                       </div>
                       <span
@@ -186,7 +203,7 @@ export default function MyCourses() {
                     >
                       {progress === 100 ? (
                         <>Review Course <ArrowRight size={14} /></>
-                      ) : progress > 0 ? (
+                      ) : progress > 0 || completedCount > 0 ? (
                         <>Continue Learning <ArrowRight size={14} /></>
                       ) : (
                         <>Start Learning <ArrowRight size={14} /></>

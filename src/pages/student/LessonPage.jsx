@@ -5,17 +5,13 @@ import apiRequest from "../../services/api";
 import {
   Play,
   ChevronLeft,
-  ChevronRight,
   CheckCircle2,
-  Circle,
   Star,
   MessageCircle,
   Paperclip,
   Mic,
   FileText,
-  Send,
   BookOpen,
-  Clock,
   Loader2,
   ArrowRight,
   ArrowLeft,
@@ -27,6 +23,7 @@ import {
   ThumbsUp,
 } from "lucide-react";
 
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 function getCurrentUser() {
   try {
     const userStr = localStorage.getItem("kta_user");
@@ -480,11 +477,11 @@ function DiscussionStep({ lessonId, onComplete }) {
   const addComment = async () => {
     if (!newComment.trim()) return;
     try {
-      const currentUser = getCurrentUser();
+      // FIX: Use PascalCase field names matching backend DTO
+      // Backend gets userId from JWT, don't send it
       const payload = { 
-        lessonId, 
-        content: newComment,
-        userId: currentUser?.id || currentUser?.userId || currentUser?.Id
+        LessonId: lessonId, 
+        Content: newComment
       };
       console.log("Posting comment with payload:", payload);
       await discussions.postComment(payload);
@@ -535,13 +532,13 @@ function DiscussionStep({ lessonId, onComplete }) {
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                  {(comment.studentName || comment.user?.fullName || "?").charAt(0)}
+                  {(comment.studentName || comment.user?.fullName || comment.userName || "?").charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
                     <div className="flex items-center gap-2 mb-1">
                       <span className="font-semibold text-sm text-[#0B1F3A]">
-                        {comment.studentName || comment.user?.fullName || "Unknown"}
+                        {comment.studentName || comment.user?.fullName || comment.userName || "Unknown"}
                       </span>
                       <span className="text-xs text-gray-400">{formatTime(comment.createdAt)}</span>
                     </div>
