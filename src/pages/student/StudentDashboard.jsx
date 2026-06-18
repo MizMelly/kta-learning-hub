@@ -58,7 +58,7 @@ export default function StudentDashboard() {
       tx_ref: "kta-" + Date.now(),
       amount: course.price || 0,
       currency: "NGN",
-      payment_options: "card,mobilemoney,ussd",
+      payment_options: "card,mobilemoney,ussd,banktransfer",
       customer: {
         email: user?.email || user?.Email || "student@kta.com",
         phone_number: user?.phoneNumber || "",
@@ -75,10 +75,18 @@ export default function StudentDashboard() {
 
     handlePayment({
       callback: async (response) => {
-        console.log("Flutterwave response:", response);
+        console.log("Flutterwave full response:", response);
         closePaymentModal();
 
-        if (response.status === "successful") {
+        // Check multiple possible success statuses
+        const isSuccess = 
+          response.status === "successful" || 
+          response.status === "completed" || 
+          response.status === "success" ||
+          response.success === true ||
+          response.data?.status === "successful";
+
+        if (isSuccess) {
           try {
             // Step 1: Enroll
             const enrollRes = await enrollments.enroll({ courseId: course.id });
@@ -89,8 +97,8 @@ export default function StudentDashboard() {
               await enrollments.pay({
                 enrollmentId: enrollmentId,
                 paymentMethod: "Flutterwave",
-                paymentReference: response.tx_ref,
-                transactionId: response.transaction_id?.toString() || response.tx_ref,
+                paymentReference: response.tx_ref || response.data?.tx_ref,
+                transactionId: response.transaction_id?.toString() || response.data?.id?.toString() || response.tx_ref,
               });
             }
 
@@ -107,7 +115,9 @@ export default function StudentDashboard() {
             alert("Payment recorded but enrollment failed: " + err.message);
           }
         } else {
-          alert("Payment was not successful. Please try again.");
+          console.log("Payment status:", response.status);
+          console.log("Payment not successful, response:", response);
+          alert("Payment was not successful. Status: " + (response.status || "unknown"));
         }
         setPaymentLoading(false);
       },
