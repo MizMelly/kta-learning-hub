@@ -25,7 +25,7 @@ import {
   Reply,
 } from "lucide-react";
 import { lessons, files } from "../../services/api";
-import apiRequest from "../../services/api";
+import apiRequest, { API_BASE, getToken } from "../../services/api";
 
 const TABS = [
   { id: "content", label: "Content", icon: FileText },
@@ -151,23 +151,58 @@ export default function LessonBuilder() {
     }
   };
 
+  const [uploadProgress, setUploadProgress] = useState({ video: 0, audio: 0, resource: 0 });
+
   const handleFileUpload = async (file, type) => {
-    if (!file) return;
+    if (!file) return null;
+    const uploadType = type === "resource" ? "document" : type;
     setUploading((prev) => ({ ...prev, [type]: true }));
+    setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
+
     try {
+      const token = getToken();
       const formData = new FormData();
       formData.append("file", file);
-      const res = await apiRequest(`/files/upload/${type === "resource" ? "document" : type}`, {
-  method: "POST",
-  body: formData,
-});
-      const url = res.data?.url || res.url || res.data;
-      return url;
+
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener("progress", (event) => {
+          if (event.lengthComputable) {
+            const percent = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress((prev) => ({ ...prev, [type]: percent }));
+          }
+        });
+
+        xhr.addEventListener("load", () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const res = JSON.parse(xhr.responseText);
+              const url = res.data?.url || res.url || res.data;
+              resolve(url);
+            } catch {
+              resolve(xhr.responseText);
+            }
+          } else {
+            reject(new Error(`Upload failed (${xhr.status})`));
+          }
+        });
+
+        xhr.addEventListener("error", () => reject(new Error("Network error")));
+        xhr.addEventListener("abort", () => reject(new Error("Upload aborted")));
+
+        xhr.open("POST", `${API_BASE}/files/upload/${uploadType}`);
+        if (token) {
+          xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+        }
+        xhr.send(formData);
+      });
     } catch (err) {
       alert("Upload failed: " + (err.message || "Unknown error"));
       return null;
     } finally {
       setUploading((prev) => ({ ...prev, [type]: false }));
+      setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
     }
   };
 
@@ -508,14 +543,30 @@ export default function LessonBuilder() {
                   className="w-full border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center gap-3 hover:border-[#0F2D52] hover:bg-slate-50 transition disabled:opacity-50"
                 >
                   {uploading.video ? (
-                    <Loader2 className="animate-spin text-[#0F2D52]" size={32} />
+                    <>
+                      <Loader2 className="animate-spin text-[#0F2D52]" size={32} />
+                      <div className="w-full max-w-xs">
+                        <div className="flex justify-between text-xs text-slate-500 mb-1">
+                          <span>Uploading...</span>
+                          <span>{uploadProgress.video}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-[#0F66B7] rounded-full transition-all duration-300" 
+                            style={{ width: `${uploadProgress.video}%` }}
+                          />
+                        </div>
+                      </div>
+                    </>
                   ) : (
-                    <Upload size={32} className="text-slate-400" />
+                    <>
+                      <Upload size={32} className="text-slate-400" />
+                      <span className="text-sm font-medium text-slate-600">
+                        Click to upload video
+                      </span>
+                      <span className="text-xs text-slate-400">MP4, MOV up to 500MB</span>
+                    </>
                   )}
-                  <span className="text-sm font-medium text-slate-600">
-                    {uploading.video ? "Uploading video..." : "Click to upload video"}
-                  </span>
-                  <span className="text-xs text-slate-400">MP4, MOV up to 500MB</span>
                 </button>
               )}
             </div>
@@ -565,11 +616,22 @@ export default function LessonBuilder() {
                   className="flex items-center gap-2 text-sm font-medium text-[#0F2D52] hover:underline disabled:opacity-50"
                 >
                   {uploading.resource ? (
-                    <Loader2 size={16} className="animate-spin" />
+                    <>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Uploading... {uploadProgress.resource}%</span>
+                      <div className="w-20 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-[#0F66B7] rounded-full transition-all duration-300" 
+                          style={{ width: `${uploadProgress.resource}%` }}
+                        />
+                      </div>
+                    </>
                   ) : (
-                    <Upload size={16} />
+                    <>
+                      <Upload size={16} />
+                      <span>Add resource</span>
+                    </>
                   )}
-                  {uploading.resource ? "Uploading..." : "Add resource"}
                 </button>
               </div>
             </div>
@@ -620,14 +682,30 @@ export default function LessonBuilder() {
                   className="w-full border-2 border-dashed border-slate-300 rounded-xl p-8 flex flex-col items-center gap-3 hover:border-[#0F2D52] hover:bg-slate-50 transition disabled:opacity-50"
                 >
                   {uploading.audio ? (
-                    <Loader2 className="animate-spin text-[#0F2D52]" size={32} />
+                    <>
+                      <Loader2 className="animate-spin text-[#0F2D52]" size={32} />
+                      <div className="w-full max-w-xs">
+                        <div className="flex justify-between text-xs text-slate-500 mb-1">
+                          <span>Uploading...</span>
+                          <span>{uploadProgress.audio}%</span>
+                        </div>
+                        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-[#0F66B7] rounded-full transition-all duration-300" 
+                            style={{ width: `${uploadProgress.audio}%` }}
+                          />
+                        </div>
+                      </div>
+                    </>
                   ) : (
-                    <Upload size={32} className="text-slate-400" />
+                    <>
+                      <Upload size={32} className="text-slate-400" />
+                      <span className="text-sm font-medium text-slate-600">
+                        Click to upload audio
+                      </span>
+                      <span className="text-xs text-slate-400">MP3, WAV up to 100MB</span>
+                    </>
                   )}
-                  <span className="text-sm font-medium text-slate-600">
-                    {uploading.audio ? "Uploading audio..." : "Click to upload audio"}
-                  </span>
-                  <span className="text-xs text-slate-400">MP3, WAV up to 100MB</span>
                 </button>
               )}
             </div>

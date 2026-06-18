@@ -1,7 +1,7 @@
-const API_BASE = "https://kta-learning-hub-api.onrender.com/api";
+export const API_BASE = "https://kta-learning-hub-api.onrender.com/api";
 
 // Helper to get token from localStorage
-const getToken = () => {
+export const getToken = () => {
   try {
     return localStorage.getItem("kta_token");
   } catch {
