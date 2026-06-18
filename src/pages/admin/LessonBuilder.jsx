@@ -124,8 +124,8 @@ export default function LessonBuilder() {
       // Rating
       setRating({ enableRating: data.enableRating !== false });
 
-      // Publish
-      setPublishStatus(data.status || "draft");
+      // Publish — FIX: normalize to lowercase so UI comparisons work
+      setPublishStatus((data.status || "draft").toLowerCase());
     } catch (err) {
       setError(err.message || "Failed to load lesson");
     } finally {
@@ -318,24 +318,24 @@ export default function LessonBuilder() {
   };
 
   const handlePublish = async (status) => {
-  setSaving(true);
-  try {
-    // Capitalize first letter to match backend enum
-    const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
-    
-    await apiRequest(`/lessons/${lessonId}/publish`, {
-      method: "PUT",
-      body: { Status: capitalizedStatus },  // ← PascalCase: Status, not status
-    });
-    
-    setPublishStatus(status);
-    showSuccess();
-  } catch (err) { 
-    setError(err.message); 
-  } finally { 
-    setSaving(false); 
-  }
-};
+    setSaving(true);
+    try {
+      // Capitalize first letter to match backend enum: "published" -> "Published"
+      const capitalizedStatus = status.charAt(0).toUpperCase() + status.slice(1);
+
+      await apiRequest(`/lessons/${lessonId}/publish`, {
+        method: "PUT",
+        body: { Status: capitalizedStatus },  // PascalCase key for backend DTO
+      });
+
+      setPublishStatus(status.toLowerCase()); // Keep lowercase for UI consistency
+      showSuccess();
+    } catch (err) { 
+      setError(err.message); 
+    } finally { 
+      setSaving(false); 
+    }
+  };
 
   const showSuccess = () => {
     setSaveSuccess(true);
