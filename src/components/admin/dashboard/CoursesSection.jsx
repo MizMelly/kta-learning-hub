@@ -27,7 +27,7 @@ export default function CoursesSection() {
   return (
     <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
       <h2 className="text-2xl font-semibold text-[#0B1F3A] mb-6">
-        Your Courses
+       Courses
       </h2>
 
       {loading ? (

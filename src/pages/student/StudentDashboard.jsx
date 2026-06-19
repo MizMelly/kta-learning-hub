@@ -277,7 +277,7 @@ export default function StudentDashboard() {
                     <button
                       onClick={() => initiatePayment(course)}
                       disabled={paymentLoading}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2 disabled:opacity-50"
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition shrink-0 flex items-center gap-2 disabled:opacity-50"
                     >
                       <Lock size={18} />
                       {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Unlock Course"}
@@ -286,7 +286,7 @@ export default function StudentDashboard() {
                     <button
                       onClick={() => initiatePayment(course)}
                       disabled={paymentLoading}
-                      className="bg-[#E79B23] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#C87E08] transition flex-shrink-0 flex items-center gap-2 disabled:opacity-50"
+                      className="bg-[#E79B23] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#C87E08] transition shrink-0 flex items-center gap-2 disabled:opacity-50"
                     >
                       <Lock size={18} />
                       {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Complete Payment"}
@@ -294,7 +294,7 @@ export default function StudentDashboard() {
                   ) : (
                     <button
                       onClick={() => navigate(`/student/courses/${courseId}`)}
-                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition flex-shrink-0 flex items-center gap-2"
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition shrink-0 flex items-center gap-2"
                     >
                       {progress > 0 ? "Continue Learning" : "Start Learning"}
                       <ArrowRight size={18} />
