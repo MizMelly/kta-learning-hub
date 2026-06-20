@@ -1,6 +1,7 @@
 import { ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+
 export default function Footer() {
   const navigate = useNavigate();
 
@@ -38,7 +39,7 @@ export default function Footer() {
           </button>
 
           <button
-            onClick={() => navigate("/courses")}
+            onClick={() => navigate("/login")}
             className="bg-white text-[#0B4F97] px-8 py-4 rounded-2xl font-semibold border border-white hover:bg-[#F5F7FA] transition-all duration-300"
           >
             Explore Courses

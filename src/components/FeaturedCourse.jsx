@@ -69,7 +69,7 @@ export default function FeaturedCourse() {
 
               {/* CTA */}
               <button
-                onClick={() => navigate("/courses")}
+                onClick={() => navigate("/login")}
                 className="mt-8 bg-[#0B4F97] hover:bg-[#0A376A] text-white px-8 py-4 rounded-2xl font-semibold flex items-center gap-2 transition-all duration-300 shadow-md hover:shadow-lg"
               >
                 View Course

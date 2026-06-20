@@ -1,6 +1,9 @@
 import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
+  const navigate = useNavigate();
+
   return (
     <section className="bg-[#F5F7FA] py-12 sm:py-16 lg:min-h-[calc(100vh-80px)] flex items-center justify-center px-5 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto text-center">
@@ -24,13 +27,15 @@ const Hero = () => {
         <div className="mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
           
           {/* Primary CTA */}
-          <button className="w-full sm:w-auto bg-[#0B4F97] text-white px-8 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2 hover:bg-[#0A376A] transition-all duration-300 shadow-lg hover:shadow-xl">
+          <button  onClick={() => navigate("/login")}
+           className="w-full sm:w-auto bg-[#0B4F97] text-white px-8 py-4 rounded-2xl font-semibold text-lg flex items-center justify-center gap-2 hover:bg-[#0A376A] transition-all duration-300 shadow-lg hover:shadow-xl">
             Get Started
             <ArrowRight className="w-5 h-5" />
           </button>
 
           {/* Secondary CTA */}
-          <button className="w-full sm:w-auto bg-white border-2 border-[#0B4F97] px-8 py-4 rounded-2xl font-semibold text-lg text-[#0B4F97] hover:bg-[#EAF2FB] transition-all duration-300">
+          <button  onClick={() => navigate("/login")}
+           className="w-full sm:w-auto bg-white border-2 border-[#0B4F97] px-8 py-4 rounded-2xl font-semibold text-lg text-[#0B4F97] hover:bg-[#EAF2FB] transition-all duration-300">
             Explore Platform
           </button>
         </div>

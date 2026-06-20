@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logo from "../assets/logo.png";
@@ -6,18 +6,14 @@ import logo from "../assets/logo.png";
 const Navbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
-  const [user, setUser] = useState(null);
-
-  useEffect(() => {
-    const stored = localStorage.getItem("kta_user");
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch {
-        setUser(null);
-      }
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem("kta_user");
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
     }
-  }, []);
+  });
 
   const handleNavigate = (path) => {
     navigate(path);
@@ -52,7 +48,7 @@ const Navbar = () => {
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center gap-8">
           <button
-            onClick={() => navigate("/courses")}
+            onClick={() => navigate("/login")}
             className="font-medium text-[#1F2937] hover:text-[#0B4F97] transition-colors"
           >
             Courses
@@ -108,7 +104,7 @@ const Navbar = () => {
         <div className="md:hidden border-t border-[#E5E7EB] bg-white shadow-lg">
           <div className="flex flex-col p-4 space-y-3">
             <button
-              onClick={() => handleNavigate("/courses")}
+              onClick={() => handleNavigate("/login")}
               className="text-left font-medium text-[#1F2937] py-2 hover:text-[#0B4F97]"
             >
               Courses
