@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { auth } from "../services/api";
+import logo from "../assets/logo.png";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -13,19 +15,20 @@ const Login = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
     setError("");
     setLoading(true);
 
     try {
-      const response = await auth.login({ email, password });
-      // api.js now auto-unwraps the backend's { success, message, data } envelope,
-      // so "response" IS the { token, user } object directly — no more response.data
+      const response = await auth.login({
+        email,
+        password,
+      });
+
       localStorage.setItem("kta_token", response.token);
       localStorage.setItem("kta_user", JSON.stringify(response.user));
 
-      // Redirect based on role
-      const user = response.user;
-      if (user.role === "Admin") {
+      if (response.user.role === "Admin") {
         navigate("/admin");
       } else {
         navigate("/student/dashboard");
@@ -38,116 +41,157 @@ const Login = () => {
   };
 
   return (
-    <section
-      id="login"
-      className="min-h-screen flex items-center justify-center bg-[#F5F7FA] px-4 py-10"
-    >
-      <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="bg-white border border-[#E5E7EB] rounded-3xl shadow-lg p-8">
-          
-          {/* Back Home */}
+    <section className="min-h-screen bg-[#F8F7F3] flex items-center justify-center px-6 py-16">
+
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,#f6efe1,transparent_45%),radial-gradient(circle_at_right,#eef5f9,transparent_45%)] opacity-80"></div>
+
+      <div className="relative w-full max-w-xl">
+
+        <div className="bg-white rounded-[30px] shadow-2xl border border-gray-100 px-8 md:px-10 py-10">
+
+          {/* Back */}
           <button
             onClick={() => navigate("/")}
-            className="flex items-center gap-2 text-sm font-medium text-[#0B4F97] hover:text-[#0A376A] transition-colors mb-6"
+            className="flex items-center gap-2 text-[#174F73] font-medium hover:text-[#F47A20] transition mb-5"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft size={18} />
             Back Home
           </button>
 
-          {/* Badge */}
-          <div className="flex justify-center mb-4">
-            <span className="bg-[#EAF2FB] text-[#0B4F97] px-4 py-2 rounded-full text-sm font-semibold">
-              Welcome Back
-            </span>
+          {/* Logo */}
+          <div className="flex justify-center mb-5">
+            <img
+              src={logo}
+              alt="Unleash Academy"
+              className="h-16 object-contain"
+            />
           </div>
 
-          {/* Title */}
-          <h2 className="text-3xl font-bold text-center text-[#0A376A]">
-            Sign In
-          </h2>
+          {/* Heading */}
+          <h1 className="text-center text-5xl font-serif font-bold text-[#174F73]">
+            Welcome Back
+          </h1>
 
-          <p className="text-center text-[#6B7280] mt-2 mb-8">
-            Continue your learning journey.
+          <p className="text-center text-gray-500 mt-3 text-lg">
+            Log in to continue your transformation journey.
           </p>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm">
+            <div className="mt-6 rounded-xl bg-red-50 border border-red-200 p-4 text-red-600 text-sm">
               {error}
             </div>
           )}
 
-          {/* Form */}
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-[#374151] mb-2">
-                Email Address
+          {/* FORM */}
+          <form onSubmit={handleLogin} className="mt-8">
+
+            {/* Email */}
+            <div className="mb-6">
+              <label className="block text-[#174F73] font-semibold mb-2">
+                Email
               </label>
 
               <input
                 type="email"
+                required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="w-full px-4 py-3 border border-[#D1D5DB] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B4F97] focus:border-transparent transition"
-                required
+                placeholder="Enter email"
+                className="w-full h-14 rounded-2xl bg-[#EAF2FB] border border-[#D8E2EE] px-5 outline-none focus:ring-2 focus:ring-[#174F73]"
               />
             </div>
 
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-[#374151] mb-2">
-                Password
-              </label>
+
+              <div className="flex justify-between mb-2">
+
+                <label className="font-semibold text-[#174F73]">
+                  Password
+                </label>
+
+                <button
+                  type="button"
+                  className="text-[#174F73] hover:text-[#F47A20] font-medium"
+                >
+                  Forgot password?
+                </button>
+
+              </div>
 
               <input
                 type="password"
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                className="w-full px-4 py-3 border border-[#D1D5DB] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0B4F97] focus:border-transparent transition"
-                required
+                placeholder="Enter password"
+                className="w-full h-14 rounded-2xl bg-[#EAF2FB] border border-[#D8E2EE] px-5 outline-none focus:ring-2 focus:ring-[#174F73]"
               />
+
             </div>
 
-            {/* Forgot Password */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                className="text-sm text-[#0B4F97] hover:text-[#E88B1A] transition-colors"
-              >
-                Forgot Password?
-              </button>
-            </div>
+            {/* Button */}
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#0B4F97] hover:bg-[#0A376A] text-white py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+              className="mt-6 w-full h-14 rounded-2xl bg-[#174F73] hover:bg-[#123F5B] text-white font-semibold text-lg transition flex items-center justify-center gap-2"
             >
               {loading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Signing in...
+                  <Loader2 className="animate-spin" size={18} />
+                  Signing In...
                 </>
               ) : (
                 "Sign In"
               )}
             </button>
+
           </form>
 
-          {/* Register */}
-          <p className="text-center text-[#6B7280] mt-8">
-            Don't have an account?{" "}
+          {/* Divider */}
+
+          <div className="flex items-center my-8">
+
+            <div className="flex-1 h-px bg-gray-300"></div>
+
+            <span className="mx-5 text-gray-400 uppercase tracking-widest text-sm">
+              Or Continue With
+            </span>
+
+            <div className="flex-1 h-px bg-gray-300"></div>
+
+          </div>
+
+          {/* Google */}
+
+          <button
+            className="w-full h-14 rounded-2xl border border-gray-300 hover:border-[#174F73] hover:bg-gray-50 transition flex items-center justify-center gap-3 font-semibold text-[#174F73]"
+          >
+            <FcGoogle size={24} />
+            Google
+          </button>
+
+          {/* Bottom */}
+
+          <div className="mt-8 text-center text-gray-500">
+
+            New here?{" "}
+
             <Link
               to="/register"
-              className="font-semibold text-[#E88B1A] hover:underline"
+              className="font-semibold text-[#174F73] hover:text-[#F47A20] inline-flex items-center gap-1"
             >
-              Create Account
+              Start Your Journey
+              <ArrowRight size={16} />
             </Link>
-          </p>
+
+          </div>
+
         </div>
+
       </div>
+
     </section>
   );
 };

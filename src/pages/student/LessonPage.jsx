@@ -4,7 +4,6 @@ import { lessons, courses, learning, discussions } from "../../services/api";
 import apiRequest from "../../services/api";
 import {
   Play,
-  ChevronLeft,
   CheckCircle2,
   Star,
   MessageCircle,
@@ -458,21 +457,34 @@ function DiscussionStep({ lessonId, onComplete }) {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchComments = async () => {
+ useEffect(() => {
+  let ignore = false;
+
+  async function loadComments() {
     try {
       const data = await discussions.getByLesson(lessonId);
-      setComments(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error("Failed to load comments:", err);
-      setComments([]);
-    } finally {
-      setLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    fetchComments();
-  }, [lessonId]);
+      if (!ignore) {
+        setComments(Array.isArray(data) ? data : []);
+      }
+    } catch (err) {
+      if (!ignore) {
+        console.error(err);
+        setComments([]);
+      }
+    } finally {
+      if (!ignore) {
+        setLoading(false);
+      }
+    }
+  }
+
+  loadComments();
+
+  return () => {
+    ignore = true;
+  };
+}, [lessonId]);
 
   const addComment = async () => {
     if (!newComment.trim()) return;
@@ -485,8 +497,11 @@ function DiscussionStep({ lessonId, onComplete }) {
       };
       console.log("Posting comment with payload:", payload);
       await discussions.postComment(payload);
-      setNewComment("");
-      fetchComments();
+
+setNewComment("");
+
+const data = await discussions.getByLesson(lessonId);
+setComments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error("Comment error:", err);
       alert("Failed to post comment: " + (err.message || "Unknown error. Check console."));
@@ -502,7 +517,7 @@ function DiscussionStep({ lessonId, onComplete }) {
         <p className="text-gray-400 text-sm mb-4">{comments.length} comment{comments.length !== 1 ? "s" : ""}</p>
 
         <div className="flex gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold shrink-0">
             {(getCurrentUser()?.fullName || "S").charAt(0)}
           </div>
           <div className="flex-1">
@@ -531,7 +546,7 @@ function DiscussionStep({ lessonId, onComplete }) {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm shrink-0">
                   {(comment.studentName || comment.user?.fullName || comment.userName || "?").charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -658,7 +673,7 @@ function RatingStep({ lessonId, existingRating, onComplete }) {
 }
 
 // ─── Step 8: Complete ────────────────────────────────────────────────────────
-function CompleteStep({ lesson, courseId, lessonId, onNextLesson, onDashboard }) {
+function CompleteStep({ lesson, onNextLesson, onDashboard }) {
   return (
     <div className="text-center py-12">
       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -714,7 +729,7 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [progress, setProgress] = useState(null);
+  const [, setProgress] = useState(null);
 
   // Fetch lesson and progress
   const fetchLesson = async () => {
@@ -735,9 +750,42 @@ export default function LessonPage() {
     }
   };
 
-  useEffect(() => {
-    fetchLesson();
-  }, [lessonId, courseId]);
+useEffect(() => {
+  let cancelled = false;
+
+  async function loadLesson() {
+    try {
+      setLoading(true);
+
+      const [lessonData, courseData, progressData] =
+        await Promise.all([
+          lessons.getStudentLesson(lessonId),
+          courses.getById(courseId),
+          learning.getProgress(lessonId),
+        ]);
+
+      if (!cancelled) {
+        setLesson(lessonData);
+        setCourse(courseData);
+        setProgress(progressData);
+      }
+    } catch (err) {
+      if (!cancelled) {
+        setError(err.message || "Failed to load lesson");
+      }
+    } finally {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    }
+  }
+
+  loadLesson();
+
+  return () => {
+    cancelled = true;
+  };
+}, [lessonId, courseId]);
 
   // Mark step complete and update progress
   const markStepComplete = async (step) => {

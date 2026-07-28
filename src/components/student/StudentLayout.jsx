@@ -4,15 +4,22 @@ import {
   Outlet,
   useNavigate,
 } from "react-router-dom";
+
 import {
   LayoutDashboard,
   BookOpen,
+  CalendarDays,
+  Users,
+  Trophy,
+  Settings,
   Menu,
   X,
   LogOut,
   Loader2,
 } from "lucide-react";
+
 import { auth } from "../../services/api";
+import logo from "../../assets/logo.png";
 
 const navItems = [
   {
@@ -22,30 +29,51 @@ const navItems = [
   },
   {
     to: "/student/courses",
-    label: "My Courses",
+    label: "My Programs",
     icon: BookOpen,
+  },
+  {
+    to: "",
+    label: "Schedule",
+    icon: CalendarDays,
+  },
+  {
+    to: "",
+    label: "Community",
+    icon: Users,
+  },
+  {
+    to: "",
+    label: "Achievements",
+    icon: Trophy,
+  },
+  {
+    to: "",
+    label: "Settings",
+    icon: Settings,
   },
 ];
 
 export default function StudentLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await auth.getProfile();
-        setUser(res.data || res);
+        const response = await auth.getProfile();
+        setUser(response.data || response);
       } catch (err) {
         console.error("Failed to load profile:", err);
-        // If profile fails, redirect to login
         navigate("/login");
       } finally {
         setLoading(false);
       }
     };
+
     fetchUser();
   }, [navigate]);
 
@@ -57,42 +85,57 @@ export default function StudentLayout() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#0F2D52]" size={32} />
+      <div className="min-h-screen bg-[#F5F7FA] flex items-center justify-center">
+        <Loader2
+          className="animate-spin text-[#0B4F97]"
+          size={34}
+        />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Mobile Top Bar */}
-      <div className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between">
+    <div className="min-h-screen bg-[#F5F7FA]">
+      {/* Mobile Header */}
+      <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-linear-to-br from-[#0F2D52] to-[#1E4A7A] flex items-center justify-center text-white font-bold shadow-md">
-            🎓
-          </div>
+          <img
+            src={logo}
+            alt="Unleash Academy"
+            className="h-12 w-auto"
+          />
+
           <div>
-            <h1 className="font-bold text-[#0F2D52]">KTA Hub</h1>
-            <p className="text-xs text-gray-400">Learning Platform</p>
+            <h2 className="font-bold text-[#0F2D52]">
+              Unleash Academy
+            </h2>
+
+            <p className="text-xs text-slate-500">
+              Student Portal
+            </p>
           </div>
         </div>
+
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center bg-white"
+          className="w-11 h-11 rounded-xl border border-slate-200 flex items-center justify-center"
         >
-          {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+          {sidebarOpen ? (
+            <X size={22} />
+          ) : (
+            <Menu size={22} />
+          )}
         </button>
-      </div>
+      </header>
 
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black/40 z-40"
           onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
         />
       )}
-
-      {/* Sidebar */}
+            {/* Sidebar */}
       <aside
         className={`
           fixed
@@ -100,82 +143,112 @@ export default function StudentLayout() {
           left-0
           h-full
           w-72
-          bg-[#0F2D52]
-          text-white
+          bg-white
+          border-r
+          border-slate-200
           z-50
+          shadow-xl
           transform
           transition-transform
           duration-300
-          shadow-2xl
+          flex
+          flex-col
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
-          lg:flex
-          lg:flex-col
         `}
       >
         {/* Logo */}
-        <div className="px-6 py-6 border-b border-white/10">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-[#E79B23] to-amber-400 flex items-center justify-center shadow-lg">
-              🎓
-            </div>
+        <div className="px-8 py-8 border-b border-slate-200">
+          <div className="flex items-center gap-4">
+            <img
+              src={logo}
+              alt="Unleash Academy"
+              className="h-14 w-auto"
+            />
+
             <div>
-              <h1 className="text-xl font-bold">KTA Hub</h1>
-              <p className="text-xs text-white/60">Learning Platform</p>
+              <h2 className="text-3xl font-bold text-[#0F4D74] leading-none">
+                Unleash
+              </h2>
+
+              <p className="text-[#F47A20] tracking-[0.35em] text-sm mt-2 uppercase">
+                Academy
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-2">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                onClick={() => setSidebarOpen(false)}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-medium ${
-                    isActive
-                      ? "bg-[#E79B23] text-white shadow-lg"
-                      : "hover:bg-white/10 text-white/80"
-                  }`
-                }
-              >
-                <Icon size={20} />
-                {item.label}
-              </NavLink>
-            );
-          })}
-        </nav>
+       {/* Navigation */}
+<nav className="flex-1 px-5 py-8 space-y-4">
+  {navItems.map((item, index) => {
+    const Icon = item.icon;
 
-        {/* Student Profile */}
-        <div className="border-t border-white/10 p-4">
-          <div className="bg-white/5 rounded-2xl p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-full bg-linear-to-br from-[#E79B23] to-amber-400 flex items-center justify-center text-[#0F2D52] font-bold">
-                {(user?.fullName || "?").charAt(0)}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{user?.fullName || "Student"}</p>
-                <p className="text-xs text-white/50 truncate">{user?.email || ""}</p>
-              </div>
+    // Disabled (not clickable) items
+    if (!item.to) {
+      return (
+        <div
+          key={index}
+          className="flex items-center gap-4 rounded-2xl px-5 py-5 font-semibold text-lg bg-[#134F73] text-white opacity-70 cursor-default select-none"
+        >
+          <Icon size={22} />
+          <span>{item.label}</span>
+        </div>
+      );
+    }
+
+    // Clickable items
+    return (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        onClick={() => setSidebarOpen(false)}
+        className={({ isActive }) =>
+          `flex items-center gap-4 rounded-2xl px-5 py-5 font-semibold text-lg transition-all duration-300 ${
+            isActive
+              ? "bg-[#134F73] text-white shadow-lg"
+              : "bg-[#134F73] text-white hover:bg-[#0F4566]"
+          }`
+        }
+      >
+        <Icon size={22} />
+        <span>{item.label}</span>
+      </NavLink>
+    );
+  })}
+</nav>
+        
+        {/* Profile */}
+        <div className="border-t border-slate-200 p-6">
+          <div className="flex items-center gap-4 mb-5">
+            <div className="w-14 h-14 rounded-full bg-[#134F73] text-white flex items-center justify-center text-xl font-bold">
+              {(user?.fullName || "S").charAt(0).toUpperCase()}
             </div>
-            <button
-              onClick={handleLogout}
-              className="mt-4 w-full flex items-center justify-center gap-2 py-2 rounded-xl bg-white/10 hover:bg-white/15 transition"
-            >
-              <LogOut size={16} />
-              Logout
-            </button>
+
+            <div className="min-w-0">
+              <h4 className="font-semibold text-[#134F73] truncate">
+                {user?.fullName || "Student"}
+              </h4>
+
+              <p className="text-sm text-slate-500 truncate">
+                {user?.email}
+              </p>
+            </div>
           </div>
+
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 py-3 text-[#475569] hover:bg-red-50 hover:text-red-600 transition"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
         </div>
       </aside>
-
-      {/* Main Content */}
+            {/* Main Content */}
       <main className="lg:ml-72 min-h-screen">
-        <Outlet />
+        <div className="min-h-screen">
+          <Outlet />
+        </div>
       </main>
     </div>
   );

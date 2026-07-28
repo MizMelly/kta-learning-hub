@@ -1,97 +1,99 @@
 import {
-  Video,
-  FileText,
-  Headphones,
-  ClipboardList,
-  Pencil,
-  MessageSquare,
-  Star,
+  Target,
+  BadgeCheck,
+  Compass,
 } from "lucide-react";
 
 const features = [
   {
-    icon: Video,
-    title: "Video Learning",
+    icon: Target,
+    title: "Evidence-Based Learning",
+    description:
+      "Curriculums grounded in neuroscience, psychology, and real-world high-performance data.",
   },
   {
-    icon: FileText,
-    title: "Written Learning Notes",
+    icon: BadgeCheck,
+    title: "World-Class Facilitators",
+    description:
+      "Learn from industry masters, clinical psychologists, and seasoned executives.",
   },
   {
-    icon: Headphones,
-    title: "Audio Learning Companion",
-  },
-  {
-    icon: ClipboardList,
-    title: "Assignments",
-  },
-  {
-    icon: Pencil,
-    title: "Personal Reflection",
-  },
-  {
-    icon: MessageSquare,
-    title: "Community Discussion",
-  },
-  {
-    icon: Star,
-    title: "Lesson Feedback & Ratings",
+    icon: Compass,
+    title: "Lifelong Ecosystem",
+    description:
+      "Beyond a course, a private network of driven individuals holding you to your highest standard.",
   },
 ];
 
 const WhyPlatform = () => {
   return (
-    <section className="bg-[#0A376A] py-16 sm:py-20 lg:py-24 px-5 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Heading */}
-        <div className="text-center">
-          <div className="inline-block mb-4">
-            
-          </div>
+    <section className="bg-white py-24 px-6">
 
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
-            Why This Platform?
+      <div className="max-w-7xl mx-auto">
+
+        {/* Heading */}
+
+        <div className="text-center max-w-4xl mx-auto">
+
+          <h2 className="font-serif text-[#134F73] font-bold text-5xl lg:text-6xl">
+            The Architecture of Growth
           </h2>
 
-          <p className="mt-5 text-base sm:text-lg lg:text-xl text-blue-100 max-w-3xl mx-auto leading-relaxed">
-            Traditional learning platforms stop at delivering content.
-            KonfirmTech Learning Hub is designed to help learners engage,
-            reflect, apply, and transform. Every lesson includes:
+          <p className="mt-6 text-xl text-gray-500 leading-9">
+            We don't just share information we facilitate profound
+            shifts in identity, capability, and performance.
           </p>
+
         </div>
 
         {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6 mt-12 lg:mt-16">
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-20">
+
           {features.map((item, index) => {
             const Icon = item.icon;
 
             return (
               <div
                 key={index}
-                className="group bg-white rounded-3xl p-6 shadow-md hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 flex items-center gap-4 border border-transparent hover:border-[#E88B1A]"
+                className="bg-white rounded-[30px] border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 p-10"
               >
+
                 {/* Icon */}
-                <div className="w-14 h-14 rounded-2xl bg-[#EAF2FB] flex items-center justify-center shrink-0 group-hover:bg-[#E88B1A] transition-colors duration-300">
+
+                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
+
                   <Icon
-                    className="text-[#0B4F97] group-hover:text-white transition-colors duration-300"
-                    size={24}
+                    size={28}
+                    className="text-[#F47A20]"
                   />
+
                 </div>
 
-                {/* Text */}
-                <h3 className="text-lg sm:text-xl font-semibold text-[#1F2937] leading-snug">
+                {/* Title */}
+
+                <h3 className="mt-10 text-[#134F73] font-serif font-bold text-4xl leading-tight">
+
                   {item.title}
+
                 </h3>
+
+                {/* Description */}
+
+                <p className="mt-8 text-gray-500 text-xl leading-9">
+
+                  {item.description}
+
+                </p>
+
               </div>
             );
           })}
+
         </div>
 
-        {/* Bottom Accent */}
-        <div className="flex justify-center mt-16">
-          <div className="w-24 h-1 bg-[#E88B1A] rounded-full"></div>
-        </div>
       </div>
+
     </section>
   );
 };

@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import logo from "../assets/logo.png";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
+
   const [user, setUser] = useState(() => {
     try {
       const stored = localStorage.getItem("kta_user");
@@ -27,93 +29,133 @@ const Navbar = () => {
     navigate("/login");
   };
 
-  const isAdmin = user?.role === "Admin" || user?.Role === "Admin";
+  const isAdmin =
+    user?.role === "Admin" || user?.Role === "Admin";
+
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { name: "About", path: "/about" },
+    { name: "Programs", path: "/programs" },
+    { name: "Events", path: "/events" },
+    { name: "Resources", path: "/resources" },
+    { name: "Contact", path: "/contact" },
+  ];
 
   return (
-    <header className="bg-[#F5F7FA] border-b border-[#E5E7EB] sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-20 sm:h-24 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-[#0F4A66]">
+      <div className="max-w-7xl mx-auto h-20 px-6 lg:px-10 flex items-center justify-between">
 
         {/* Logo */}
-        <button
-          onClick={() => navigate("/")}
-          className="flex items-center gap-3"
-        >
+        <button onClick={() => navigate("/")}>
           <img
             src={logo}
-            alt="KonfirmTech Africa"
-            className="h-16 sm:h-20 lg:h-24 w-auto object-contain"
+            alt="Unleash Academy"
+            className="h-12 lg:h-14 w-auto"
           />
         </button>
 
         {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-8">
-          <button
-            onClick={() => navigate("/login")}
-            className="font-medium text-[#1F2937] hover:text-[#0B4F97] transition-colors"
-          >
-            Courses
-          </button>
+        <nav className="hidden lg:flex items-center space-x-10">
+          {navLinks.map((link) => {
+            const active = location.pathname === link.path;
 
-          {/* Only show Admin if logged in as admin */}
+            return (
+              <button
+                key={link.name}
+                onClick={() => navigate(link.path)}
+                className={`relative font-medium transition duration-300 ${
+                  active
+                    ? "text-white"
+                    : "text-white/80 hover:text-white"
+                }`}
+              >
+                {link.name}
+
+                {active && (
+                  <span className="absolute left-0 right-0 -bottom-3 mx-auto h-0.5 w-8 rounded-full bg-[#F47A20]" />
+                )}
+              </button>
+            );
+          })}
+
           {isAdmin && (
             <button
               onClick={() => navigate("/admin")}
-              className="font-medium text-[#1F2937] hover:text-[#0B4F97] transition-colors"
+              className="text-white/80 hover:text-white transition"
             >
               Admin
             </button>
           )}
+        </nav>
+
+        {/* Right Side */}
+        <div className="hidden lg:flex items-center gap-6">
 
           {user ? (
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-500">
-                {user.fullName || user.FullName || "User"}
+            <>
+              <span className="text-white text-sm">
+                {user.fullName || user.FullName}
               </span>
+
               <button
                 onClick={handleLogout}
-                className="font-medium text-red-500 hover:text-red-600 transition-colors"
+                className="text-white hover:text-[#F47A20] transition"
               >
                 Logout
               </button>
-            </div>
+            </>
           ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="bg-[#0B4F97] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#0A376A] transition-all duration-200 shadow-sm hover:shadow-md"
-            >
-              Sign In
-            </button>
+            <>
+              <button
+                onClick={() => navigate("/login")}
+                className="text-white font-medium hover:text-[#F47A20] transition"
+              >
+                Log In
+              </button>
+
+              <button
+                onClick={() => navigate("/register")}
+                className="bg-[#F47A20] hover:bg-[#E36C13] text-white font-semibold px-7 py-3 rounded-full transition duration-300"
+              >
+                Start Your Journey
+              </button>
+            </>
           )}
         </div>
 
-        {/* Mobile Menu Button */}
+        {/* Mobile Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="md:hidden p-2"
+          className="lg:hidden text-white"
         >
           {isOpen ? (
-            <X className="w-6 h-6 text-[#0A376A]" />
+            <X size={28} />
           ) : (
-            <Menu className="w-6 h-6 text-[#0A376A]" />
+            <Menu size={28} />
           )}
         </button>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden border-t border-[#E5E7EB] bg-white shadow-lg">
-          <div className="flex flex-col p-4 space-y-3">
-            <button
-              onClick={() => handleNavigate("/login")}
-              className="text-left font-medium text-[#1F2937] py-2 hover:text-[#0B4F97]"
-            >
-              Courses
-            </button>
+        <div className="lg:hidden bg-[#0F4A66] border-t border-white/10">
+
+          <div className="px-6 py-5 flex flex-col gap-5">
+
+            {navLinks.map((link) => (
+              <button
+                key={link.name}
+                onClick={() => handleNavigate(link.path)}
+                className="text-left text-white hover:text-[#F47A20]"
+              >
+                {link.name}
+              </button>
+            ))}
 
             {isAdmin && (
               <button
                 onClick={() => handleNavigate("/admin")}
-                className="text-left font-medium text-[#1F2937] py-2 hover:text-[#0B4F97]"
+                className="text-left text-white hover:text-[#F47A20]"
               >
                 Admin
               </button>
@@ -121,23 +163,33 @@ const Navbar = () => {
 
             {user ? (
               <>
-                <span className="text-sm text-gray-500 py-2">
-                  {user.fullName || user.FullName || "User"}
+                <span className="text-white">
+                  {user.fullName || user.FullName}
                 </span>
+
                 <button
                   onClick={handleLogout}
-                  className="text-left font-medium text-red-500 py-2 hover:text-red-600"
+                  className="text-left text-red-400"
                 >
                   Logout
                 </button>
               </>
             ) : (
-              <button
-                onClick={() => handleNavigate("/login")}
-                className="bg-[#0B4F97] hover:bg-[#0A376A] text-white py-3 rounded-xl font-semibold transition-colors"
-              >
-                Sign In
-              </button>
+              <>
+                <button
+                  onClick={() => handleNavigate("/login")}
+                  className="text-left text-white"
+                >
+                  Log In
+                </button>
+
+                <button
+                  onClick={() => handleNavigate("/register")}
+                  className="bg-[#F47A20] text-white py-3 rounded-full font-semibold"
+                >
+                  Start Your Journey
+                </button>
+              </>
             )}
           </div>
         </div>
