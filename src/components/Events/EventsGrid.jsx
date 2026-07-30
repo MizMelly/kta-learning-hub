@@ -34,27 +34,31 @@ const events = [
 
 export default function EventsGrid() {
   return (
-    <section className="pb-24">
+    <section className="pb-16 sm:pb-20 lg:pb-24">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+        {/* Section Heading */}
+        <div className="mb-8 sm:mb-10 lg:mb-12">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#124A66]">
+            Upcoming Schedule
+          </h2>
 
-      <div className="mx-auto max-w-7xl px-6">
+          <p className="mt-3 max-w-2xl text-base sm:text-lg text-gray-500 leading-7">
+            Join our upcoming live experiences, workshops, and immersive
+            transformational events designed to accelerate your personal and
+            professional growth.
+          </p>
+        </div>
 
-        <h2 className="font-serif text-5xl text-[#124A66]">
-          Upcoming Schedule
-        </h2>
-
-        <div className="mt-12 grid gap-8 lg:grid-cols-3">
-
+        {/* Events Grid */}
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
           {events.map((event) => (
             <EventCard
               key={event.title}
               {...event}
             />
           ))}
-
         </div>
-
       </div>
-
     </section>
   );
 }
