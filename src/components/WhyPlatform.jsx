@@ -27,73 +27,54 @@ const features = [
 
 const WhyPlatform = () => {
   return (
-    <section className="bg-white py-24 px-6">
-
-      <div className="max-w-7xl mx-auto">
-
+    <section className="bg-white py-16 md:py-24 px-5 sm:px-6">
+      <div className="mx-auto max-w-7xl">
         {/* Heading */}
-
-        <div className="text-center max-w-4xl mx-auto">
-
-          <h2 className="font-serif text-[#134F73] font-bold text-5xl lg:text-6xl">
-            The Architecture of Growth
+        <div className="mx-auto max-w-4xl text-center">
+          <h2 className="font-serif font-bold leading-tight text-[#134F73]">
+            <span className="block text-4xl sm:text-5xl lg:text-6xl">
+              The Architecture of Growth
+            </span>
           </h2>
 
-          <p className="mt-6 text-xl text-gray-500 leading-9">
-            We don't just share information we facilitate profound
-            shifts in identity, capability, and performance.
+          <p className="mt-6 text-base leading-7 text-gray-500 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
+            We don't just share information—we facilitate profound shifts in
+            identity, capability, and performance.
           </p>
-
         </div>
 
         {/* Cards */}
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-20">
-
+        <div className="mt-12 grid grid-cols-1 gap-6 md:mt-16 lg:mt-20 lg:grid-cols-3 lg:gap-8">
           {features.map((item, index) => {
             const Icon = item.icon;
 
             return (
               <div
                 key={index}
-                className="bg-white rounded-[30px] border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 p-10"
+                className="rounded-3xl md:rounded-[30px] border border-gray-200 bg-white p-6 md:p-10 shadow-sm transition-all duration-300 hover:shadow-xl"
               >
-
                 {/* Icon */}
-
-                <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center">
-
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 md:h-16 md:w-16">
                   <Icon
-                    size={28}
-                    className="text-[#F47A20]"
+                    size={22}
+                    className="text-[#F47A20] md:h-7 md:w-7"
                   />
-
                 </div>
 
                 {/* Title */}
-
-                <h3 className="mt-10 text-[#134F73] font-serif font-bold text-4xl leading-tight">
-
+                <h3 className="mt-6 md:mt-10 font-serif text-3xl font-bold leading-tight text-[#134F73] md:text-4xl">
                   {item.title}
-
                 </h3>
 
                 {/* Description */}
-
-                <p className="mt-8 text-gray-500 text-xl leading-9">
-
+                <p className="mt-4 md:mt-8 text-base leading-7 text-gray-500 sm:text-lg sm:leading-8 md:text-xl md:leading-9">
                   {item.description}
-
                 </p>
-
               </div>
             );
           })}
-
         </div>
-
       </div>
-
     </section>
   );
 };

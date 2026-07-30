@@ -81,20 +81,19 @@ export default function Register() {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#F8F7F3] flex items-center justify-center px-6 py-16">
-
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#F8F7F3] px-5 py-10 sm:px-6 md:py-16">
       {/* Background */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_left,#f6efe1,transparent_45%),radial-gradient(circle_at_right,#eef5f9,transparent_45%)] opacity-80"></div>
 
       <div className="relative w-full max-w-xl">
 
-        <div className="rounded-[30px] border border-gray-100 bg-white px-8 md:px-10 py-10 shadow-2xl">
+        <div className="rounded-3xl md:rounded-[30px] border border-gray-100 bg-white px-6 py-8 shadow-2xl md:px-10 md:py-10">
 
           {/* Back */}
           <button
             onClick={() => navigate("/")}
-            className="mb-5 flex items-center gap-2 font-medium text-[#174F73] transition hover:text-[#F47A20]"
-          >
+            className="mb-4 flex items-center gap-2 text-sm md:text-base font-medium text-[#174F73] 
+            transition hover:text-[#F47A20]">
             <ArrowLeft size={18} />
             Back Home
           </button>
@@ -104,16 +103,16 @@ export default function Register() {
             <img
               src={logo}
               alt="Unleash Academy"
-              className="h-16 object-contain"
+              className="h-12 object-contain md:h-16"
             />
           </div>
 
           {/* Heading */}
-          <h1 className="text-center text-5xl font-bold font-serif text-[#174F73]">
+          <h1 className="text-center font-serif text-4xl font-bold text-[#174F73] sm:text-5xl md:text-6xl">
             Create Account
           </h1>
 
-          <p className="mt-3 text-center text-lg text-gray-500">
+          <p className="mt-3 text-center text-base leading-7 text-gray-500 sm:text-lg">
             Start your transformation journey today.
           </p>
 
@@ -125,14 +124,14 @@ export default function Register() {
 
           <form
             onSubmit={handleSubmit}
-            className="mt-8 space-y-6"
+            className="mt-6 space-y-5 md:mt-8 md:space-y-6"
           >
 
             {/* Names */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-4">
 
               <div>
-                <label className="mb-2 block font-semibold text-[#174F73]">
+                <label className="mb-2 block text-sm font-semibold text-[#174F73] md:text-base">
                   First Name
                 </label>
 
@@ -141,7 +140,7 @@ export default function Register() {
                   name="firstName"
                   value={formData.firstName}
                   onChange={handleChange}
-                  className="h-14 w-full rounded-2xl border border-[#D8E2EE] bg-[#EAF2FB] px-5 outline-none transition focus:ring-2 focus:ring-[#174F73]"
+                  className="h-12 md:h-14 w-full rounded-2xl border border-[#D8E2EE] bg-[#EAF2FB] px-5 outline-none transition focus:ring-2 focus:ring-[#174F73]"
                   required
                 />
               </div>
@@ -222,8 +221,7 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-2 flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-[#174F73] text-lg font-semibold text-white transition hover:bg-[#123F5B]"
-            >
+              className="mt-2 flex h-12 md:h-14 w-full items-center justify-center gap-2 rounded-xl md:rounded-2xl bg-[#174F73] text-base md:text-lg font-semibold text-white transition hover:bg-[#123F5B]">
               {loading ? (
                 <>
                   <Loader2
@@ -253,7 +251,7 @@ export default function Register() {
         </form>
 
         {/* Divider */}
-        <div className="my-7 flex items-center gap-4">
+        <div className="my-6 flex items-center gap-3 md:my-7 md:gap-4">
           <div className="h-px flex-1 bg-gray-200"></div>
 
           <span className="text-xs uppercase tracking-[0.2em] text-gray-400">
@@ -266,8 +264,7 @@ export default function Register() {
         {/* Google Button */}
         <button
           type="button"
-          className="w-full rounded-xl border border-[#D6DEE8] bg-white py-3.5 font-semibold text-[#184F6E] transition hover:bg-gray-50 flex items-center justify-center gap-3"
-        >
+          className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#D6DEE8] bg-white py-3 text-base font-semibold text-[#184F6E] transition hover:bg-gray-50 md:py-3.5">
           <svg
             width="22"
             height="22"
@@ -296,7 +293,7 @@ export default function Register() {
         </button>
 
         {/* Bottom */}
-        <p className="mt-8 text-center text-[15px] text-gray-500">
+        <p className="mt-6 text-center text-sm text-gray-500 md:mt-8 md:text-[15px]">
           Already have an account?{" "}
           <Link
             to="/login"
