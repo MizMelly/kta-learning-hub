@@ -48,27 +48,39 @@ export default function ResourcesGrid({
   });
 
   return (
-    <section className="px-4 pb-20 sm:px-6 lg:px-8">
+    <section className="px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
       <div className="mx-auto max-w-7xl">
+
         {filteredResources.length > 0 ? (
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
+
             {filteredResources.map((resource) => (
-              <ResourceCard
-                key={resource.title}
-                category={resource.category}
-                title={resource.title}
-                description={resource.description}
-                readTime={resource.readTime}
-              />
+              <div key={resource.title} className="h-full">
+                <ResourceCard
+                  category={resource.category}
+                  title={resource.title}
+                  description={resource.description}
+                  readTime={resource.readTime}
+                />
+              </div>
             ))}
+
           </div>
         ) : (
-          <div className="flex h-64 items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-white">
-            <p className="text-lg text-gray-500">
-              No resources found.
+          <div className="flex min-h-70 flex-col items-center justify-center rounded-3xl border border-dashed border-gray-300 bg-white px-6 text-center">
+
+            <h3 className="text-xl font-semibold text-[#124A66]">
+              No resources found
+            </h3>
+
+            <p className="mt-3 max-w-md text-sm leading-7 text-gray-500 sm:text-base">
+              We couldn't find any resources matching your search or selected
+              category. Try using different keywords or choose another category.
             </p>
+
           </div>
         )}
+
       </div>
     </section>
   );
