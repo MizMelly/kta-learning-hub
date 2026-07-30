@@ -17,11 +17,23 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import MyCourses from "./pages/student/MyCourses";
 import LessonPage from "./pages/student/LessonPage";
 import CourseDetails from "./pages/student/CourseDetails";
+import About from "./components/pages/About";
+import Programs from './components/pages/Programs';
+import Events  from './components/pages/Events';
+import Resources from './components/pages/Resources';
+import Contact from './components/pages/Contact';
+
+
 
 function App() {
   return (
     <Routes>
         <Route path="/" element={<Home />} />
+         <Route path="/about" element={<About />} />
+         <Route path="/programs" element={<Programs />} />
+         <Route path="/events" element={<Events />} />
+         <Route path="/resources" element={<Resources />} />
+         <Route path="/contact" element={<Contact />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
