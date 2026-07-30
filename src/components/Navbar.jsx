@@ -42,15 +42,15 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-[#0F4A66]">
-      <div className="max-w-7xl mx-auto h-20 px-6 lg:px-10 flex items-center justify-between">
+    <header className="sticky top-0 z-50 bg-[#0F4A66] shadow-sm">
+      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:h-18 sm:px-6 lg:h-20 lg:px-10">
 
         {/* Logo */}
         <button onClick={() => navigate("/")}>
           <img
             src={logo}
             alt="Unleash Academy"
-            className="h-12 lg:h-14 w-auto"
+            className="h-9 w-auto sm:h-10 lg:h-14"
           />
         </button>
 
@@ -63,7 +63,7 @@ const Navbar = () => {
               <button
                 key={link.name}
                 onClick={() => navigate(link.path)}
-                className={`relative font-medium transition duration-300 ${
+                className={`relative font-medium transition ${
                   active
                     ? "text-white"
                     : "text-white/80 hover:text-white"
@@ -88,12 +88,11 @@ const Navbar = () => {
           )}
         </nav>
 
-        {/* Right Side */}
+        {/* Desktop Right */}
         <div className="hidden lg:flex items-center gap-6">
-
           {user ? (
             <>
-              <span className="text-white text-sm">
+              <span className="text-sm text-white">
                 {user.fullName || user.FullName}
               </span>
 
@@ -108,14 +107,14 @@ const Navbar = () => {
             <>
               <button
                 onClick={() => navigate("/login")}
-                className="text-white font-medium hover:text-[#F47A20] transition"
+                className="font-medium text-white hover:text-[#F47A20] transition"
               >
                 Log In
               </button>
 
               <button
                 onClick={() => navigate("/register")}
-                className="bg-[#F47A20] hover:bg-[#E36C13] text-white font-semibold px-7 py-3 rounded-full transition duration-300"
+                className="rounded-full bg-[#F47A20] px-7 py-3 font-semibold text-white transition hover:bg-[#E36C13]"
               >
                 Start Your Journey
               </button>
@@ -123,30 +122,24 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Button */}
+        {/* Mobile Menu Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="lg:hidden text-white"
+          className="text-white lg:hidden"
         >
-          {isOpen ? (
-            <X size={28} />
-          ) : (
-            <Menu size={28} />
-          )}
+          {isOpen ? <X size={26} /> : <Menu size={26} />}
         </button>
       </div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="lg:hidden bg-[#0F4A66] border-t border-white/10">
-
-          <div className="px-6 py-5 flex flex-col gap-5">
-
+        <div className="border-t border-white/10 bg-[#0F4A66] lg:hidden">
+          <div className="flex flex-col gap-5 px-5 py-5">
             {navLinks.map((link) => (
               <button
                 key={link.name}
                 onClick={() => handleNavigate(link.path)}
-                className="text-left text-white hover:text-[#F47A20]"
+                className="text-left text-white transition hover:text-[#F47A20]"
               >
                 {link.name}
               </button>
@@ -155,7 +148,7 @@ const Navbar = () => {
             {isAdmin && (
               <button
                 onClick={() => handleNavigate("/admin")}
-                className="text-left text-white hover:text-[#F47A20]"
+                className="text-left text-white transition hover:text-[#F47A20]"
               >
                 Admin
               </button>
@@ -185,7 +178,7 @@ const Navbar = () => {
 
                 <button
                   onClick={() => handleNavigate("/register")}
-                  className="bg-[#F47A20] text-white py-3 rounded-full font-semibold"
+                  className="rounded-full bg-[#F47A20] py-3 font-semibold text-white"
                 >
                   Start Your Journey
                 </button>

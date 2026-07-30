@@ -14,7 +14,7 @@ export default function Resources() {
   return (
     <>
       <Navbar />
-    <main className="min-h-screen bg-[#FAFAF7] pt-28 pb-24">
+    <main className="min-h-screen bg-[#FAFAF7] pt-3 pb-16 sm:pt-4 sm:pb-20 lg:pt-8 lg:pb-24">
 
       {/* Hero */}
 
