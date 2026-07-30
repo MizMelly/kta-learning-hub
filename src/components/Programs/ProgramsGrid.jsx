@@ -66,21 +66,22 @@ export default function ProgramsGrid({ activeCategory }) {
         );
 
   return (
-    <section className="px-4 pb-16 sm:px-6 lg:px-8">
+    <section className="px-4 py-8 sm:px-6 sm:py-10 lg:px-8 lg:py-12">
       <div className="mx-auto max-w-7xl">
 
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-6 sm:gap-8 md:grid-cols-2 xl:grid-cols-3">
 
           {filteredPrograms.map((program) => (
-            <ProgramCard
-              key={program.title}
-              category={program.category}
-              title={program.title}
-              description={program.description}
-              duration={program.duration}
-              delivery={program.delivery}
-              startDate={program.startDate}
-            />
+            <div key={program.title} className="h-full">
+              <ProgramCard
+                category={program.category}
+                title={program.title}
+                description={program.description}
+                duration={program.duration}
+                delivery={program.delivery}
+                startDate={program.startDate}
+              />
+            </div>
           ))}
 
         </div>

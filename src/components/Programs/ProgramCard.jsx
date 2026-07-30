@@ -21,7 +21,7 @@ export default function ProgramCard({
         h-full
         flex-col
         rounded-3xl
-        lg:rounded-4xl
+        lg:rounded-[32px]
         border
         border-gray-200
         bg-white
@@ -42,21 +42,21 @@ export default function ProgramCard({
       </span>
 
       {/* Title */}
-      <h3 className="mt-4 sm:mt-5 lg:mt-6 font-serif text-2xl sm:text-3xl font-semibold leading-tight text-[#124A66]">
+      <h3 className="mt-4 sm:mt-5 lg:mt-6 font-serif text-2xl sm:text-3xl lg:text-[34px] leading-tight text-[#124A66] wrap-break-word">
         {title}
       </h3>
 
       {/* Description */}
-      <p className="mt-3 sm:mt-4 lg:mt-5 flex-1 text-base sm:text-lg leading-7 sm:leading-8 text-gray-600">
+      <p className="mt-3 sm:mt-4 lg:mt-5 flex-1 text-sm sm:text-base lg:text-lg leading-7 sm:leading-8 text-gray-600">
         {description}
       </p>
 
-      {/* Info */}
+      {/* Information */}
       <div className="mt-6 sm:mt-7 lg:mt-8 space-y-3 sm:space-y-4 border-t border-gray-100 pt-5 sm:pt-6">
         <div className="flex items-center gap-3 text-gray-700">
           <Clock3
             size={18}
-            className="text-[#E46F21] shrink-0"
+            className="shrink-0 text-[#E46F21]"
           />
 
           <span className="text-sm sm:text-base">
@@ -67,7 +67,7 @@ export default function ProgramCard({
         <div className="flex items-center gap-3 text-gray-700">
           <MonitorPlay
             size={18}
-            className="text-[#E46F21] shrink-0"
+            className="shrink-0 text-[#E46F21]"
           />
 
           <span className="text-sm sm:text-base">
@@ -78,7 +78,7 @@ export default function ProgramCard({
         <div className="flex items-center gap-3 text-gray-700">
           <CalendarDays
             size={18}
-            className="text-[#E46F21] shrink-0"
+            className="shrink-0 text-[#E46F21]"
           />
 
           <span className="text-sm sm:text-base">
@@ -88,7 +88,31 @@ export default function ProgramCard({
       </div>
 
       {/* Button */}
-      <button className="mt-6 sm:mt-7 lg:mt-8 inline-flex items-center gap-2 sm:gap-3 self-start rounded-full bg-[#124A66] px-5 sm:px-6 py-3 text-sm sm:text-base font-semibold text-white transition duration-300 hover:bg-[#0E3D53]">
+      <button
+        className="
+          mt-6
+          sm:mt-7
+          lg:mt-8
+          inline-flex
+          w-full
+          sm:w-auto
+          items-center
+          justify-center
+          gap-2
+          sm:gap-3
+          rounded-full
+          bg-[#124A66]
+          px-6
+          py-3.5
+          text-sm
+          sm:text-base
+          font-semibold
+          text-white
+          transition-all
+          duration-300
+          hover:bg-[#0E3D53]
+        "
+      >
         View Details
 
         <ArrowRight
