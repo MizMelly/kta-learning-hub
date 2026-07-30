@@ -101,32 +101,32 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="bg-[#F8F8F5] min-h-screen px-6 lg:px-10 py-8">
+    <div className="bg-[#F8F8F5] min-h-screen px-4 sm:px-6 lg:px-10 py-5 sm:py-8">
 
       {/* Header */}
 
-      <div className="flex justify-between items-start">
+      <div className="flex items-start justify-between gap-4">
 
-        <div>
+        <div className="flex-1">
 
-          <h1 className="font-serif text-4xl lg:text-6xl font-bold text-[#134F73]">
+          <h1 className="font-serif text-3xl sm:text-4xl lg:text-6xl font-bold text-[#134F73] leading-tight">
             {greeting}, {firstName}
           </h1>
 
-          <p className="text-slate-500 text-xl mt-3">
+          <p className="mt-2 text-base sm:text-lg lg:text-xl text-slate-500">
             "Excellence is not an act, but a habit."
           </p>
 
         </div>
 
-        <button className="relative w-16 h-16 rounded-full bg-white shadow flex items-center justify-center">
+        <button className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-white shadow flex items-center justify-center shrink-0">
 
           <Bell
-            size={26}
+            size={20}
             className="text-[#134F73]"
           />
 
-          <span className="absolute top-4 right-4 w-3 h-3 rounded-full bg-red-500" />
+          <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-red-500" />
 
         </button>
 
@@ -134,16 +134,16 @@ export default function Dashboard() {
 
       {/* Hero */}
 
-      <div className="mt-10 rounded-[32px] bg-[#134F73] text-white p-8 lg:p-12 shadow-2xl">
+      <div className="mt-8 rounded-3xl lg:rounded-[32px] bg-[#134F73] text-white p-5 sm:p-8 lg:p-12 shadow-2xl">
 
-        <div className="flex flex-col lg:flex-row items-center gap-10">
+        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
 
           {/* Progress Circle */}
 
-          <div className="relative w-40 h-40">
+          <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40">
 
             <svg
-              className="w-40 h-40 -rotate-90"
+              className="w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 -rotate-90"
               viewBox="0 0 120 120"
             >
               <circle
@@ -172,7 +172,7 @@ export default function Dashboard() {
 
             <div className="absolute inset-0 flex items-center justify-center">
 
-              <span className="text-5xl font-serif font-bold">
+              <span className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold">
                 {currentCourse.progress}%
               </span>
 
@@ -182,20 +182,20 @@ export default function Dashboard() {
 
           {/* Course Info */}
 
-          <div className="flex-1">
+          <div className="flex-1 text-center lg:text-left">
 
-            <p className="uppercase tracking-[0.35em] text-[#F4B321] font-bold">
+            <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#F4B321] font-bold">
               Up Next
             </p>
 
-            <h2 className="font-serif text-4xl lg:text-6xl mt-3 font-bold capitalize">
+            <h2 className="font-serif text-2xl sm:text-4xl lg:text-6xl mt-2 sm:mt-3 font-bold capitalize leading-tight">
               {currentCourse.title}
             </h2>
 
-            <div className="flex items-center gap-3 mt-6 text-2xl">
+            <div className="flex items-center justify-center lg:justify-start gap-2 sm:gap-3 mt-4 sm:mt-6 text-base sm:text-xl lg:text-2xl">
 
               <Clock3
-                size={22}
+                size={20}
                 className="text-[#F4B321]"
               />
 
@@ -205,7 +205,7 @@ export default function Dashboard() {
 
             <button
               onClick={() => navigate("/student/courses")}
-              className="mt-8 bg-white text-[#134F73] rounded-full px-10 py-4 flex items-center gap-3 font-semibold hover:scale-105 transition"
+              className="mt-6 sm:mt-8 w-full sm:w-fit justify-center bg-white text-[#134F73] rounded-full px-6 sm:px-10 py-3 sm:py-4 flex items-center gap-3 font-semibold hover:scale-105 transition"
             >
               <Play size={18} fill="#134F73" />
               Resume Lesson
@@ -216,40 +216,39 @@ export default function Dashboard() {
         </div>
 
       </div>
-            {/* ========================= */}
-      {/* Activity + Community */}
-      {/* ========================= */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-10">
+      {/* Activity + Community */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mt-8 lg:mt-10">
 
         {/* Left Column */}
 
         <div className="lg:col-span-3">
 
-          <h2 className="font-serif text-5xl text-[#134F73] mb-8">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#134F73] mb-5 lg:mb-8">
             Your Activity
           </h2>
 
-          <div className="grid grid-cols-2 lg:grid-cols-2 gap-5">
+          <div className="grid grid-cols-2 gap-4 sm:gap-5">
 
             {/* Lessons */}
 
-            <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-6">
+            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-md border border-slate-100 p-5 sm:p-6">
 
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-5">
 
                 <BookOpen
-                  size={22}
+                  size={20}
                   className="text-[#134F73]"
                 />
 
               </div>
 
-              <h3 className="text-5xl font-serif text-[#134F73]">
+              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#134F73]">
                 {completedLessons}
               </h3>
 
-              <p className="uppercase tracking-[0.35em] text-xs text-slate-500 mt-4 leading-6">
+              <p className="uppercase tracking-[0.25em] text-[10px] sm:text-xs text-slate-500 mt-3 leading-5">
                 Lessons
                 <br />
                 Completed
@@ -259,22 +258,22 @@ export default function Dashboard() {
 
             {/* Journal */}
 
-            <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-6">
+            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-md border border-slate-100 p-5 sm:p-6">
 
-              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-6">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
 
                 <PencilLine
-                  size={22}
+                  size={20}
                   className="text-[#F47A20]"
                 />
 
               </div>
 
-              <h3 className="text-5xl font-serif text-[#134F73]">
+              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#134F73]">
                 {journalEntries}
               </h3>
 
-              <p className="uppercase tracking-[0.35em] text-xs text-slate-500 mt-4 leading-6">
+              <p className="uppercase tracking-[0.25em] text-[10px] sm:text-xs text-slate-500 mt-3 leading-5">
                 Journal
                 <br />
                 Entries
@@ -286,60 +285,59 @@ export default function Dashboard() {
 
           {/* Upcoming Call */}
 
-          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-7 mt-6">
+          <div className="bg-white rounded-2xl lg:rounded-3xl shadow-md border border-slate-100 p-5 sm:p-7 mt-6">
 
             <div className="flex items-center gap-3 mb-5">
 
               <CalendarDays
-                size={22}
+                size={20}
                 className="text-[#134F73]"
               />
 
-              <h3 className="font-serif text-2xl text-[#134F73]">
+              <h3 className="font-serif text-xl sm:text-2xl text-[#134F73]">
                 Upcoming Live Call
               </h3>
 
             </div>
 
-            <h4 className="font-semibold text-2xl text-[#134F73]">
+            <h4 className="font-semibold text-lg sm:text-xl lg:text-2xl text-[#134F73]">
               Group Coaching: Alignment
             </h4>
 
-            <p className="text-slate-500 mt-3">
+            <p className="text-slate-500 mt-3 text-sm sm:text-base">
               Tomorrow, 14:00 GMT
             </p>
 
-            <button className="w-full mt-7 rounded-2xl border border-slate-200 py-3 font-medium hover:bg-slate-50 transition">
+            <button className="w-full mt-6 rounded-2xl border border-slate-200 py-3 font-medium hover:bg-slate-50 transition">
               Add to Calendar
             </button>
 
           </div>
 
         </div>
-
-        {/* Right Column */}
+                {/* Right Column */}
 
         <div className="lg:col-span-9">
 
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 lg:mb-8">
 
-            <h2 className="font-serif text-5xl text-[#134F73]">
+            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#134F73]">
               Community Highlights
             </h2>
 
-            <button className="text-[#F4B321] font-semibold hover:underline">
+            <button className="self-start sm:self-auto text-[#F4B321] font-semibold hover:underline text-sm sm:text-base">
               View All
             </button>
 
           </div>
 
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden">
+          <div className="bg-white rounded-2xl lg:rounded-3xl border border-slate-100 shadow-md overflow-hidden">
 
             {communityPosts.map((post, index) => (
 
               <div
                 key={post.id}
-                className={`flex gap-6 px-8 py-7 ${
+                className={`flex gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8 py-5 sm:py-7 ${
                   index !== communityPosts.length - 1
                     ? "border-b border-slate-100"
                     : ""
@@ -348,7 +346,7 @@ export default function Dashboard() {
 
                 {/* Avatar */}
 
-                <div className="w-12 h-12 rounded-full bg-[#EEF3EF] flex items-center justify-center font-bold text-[#134F73] shrink-0">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#EEF3EF] flex items-center justify-center font-bold text-[#134F73] shrink-0">
 
                   {post.initials}
 
@@ -356,21 +354,21 @@ export default function Dashboard() {
 
                 {/* Content */}
 
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
 
-                  <div className="flex justify-between items-center">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
 
-                    <h4 className="font-bold text-xl text-[#134F73]">
+                    <h4 className="font-bold text-lg sm:text-xl text-[#134F73]">
                       {post.name}
                     </h4>
 
-                    <span className="text-slate-400 text-sm">
+                    <span className="text-slate-400 text-xs sm:text-sm">
                       {post.time}
                     </span>
 
                   </div>
 
-                  <p className="text-slate-600 leading-9 mt-4 text-lg">
+                  <p className="text-slate-600 leading-7 sm:leading-8 lg:leading-9 mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg">
                     {post.message}
                   </p>
 
@@ -385,308 +383,6 @@ export default function Dashboard() {
         </div>
 
       </div>
-            {/* ======================================== */}
-      {/* Continue Learning */}
-      {/* ======================================== */}
-
-      <section className="mt-12">
-
-        <div className="flex items-center justify-between mb-8">
-
-          <h2 className="font-serif text-5xl text-[#134F73]">
-            Continue Learning
-          </h2>
-
-          <button
-            onClick={() => navigate("/student/courses")}
-            className="text-[#F4B321] font-semibold hover:underline"
-          >
-            View All
-          </button>
-
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-
-          {coursesList.slice(0, 3).map((course, index) => (
-
-            <div
-              key={course._id || index}
-              className="bg-white rounded-3xl shadow-md border border-slate-100 overflow-hidden hover:-translate-y-1 transition-all duration-300"
-            >
-
-              {/* Banner */}
-
-              <div className="h-48 bg-linear-to-br from-[#134F73] to-[#0D3F5C] flex items-center justify-center">
-
-                <BookOpen
-                  size={56}
-                  className="text-white"
-                />
-
-              </div>
-
-              {/* Content */}
-
-              <div className="p-7">
-
-                <span className="inline-flex rounded-full bg-[#FFF4E5] px-4 py-2 text-sm font-semibold text-[#F47A20]">
-                  Active Course
-                </span>
-
-                <h3 className="mt-5 text-2xl font-bold text-[#134F73] capitalize">
-                  {course.title}
-                </h3>
-
-                <p className="mt-4 text-slate-500 leading-7 line-clamp-3">
-                  {course.description ||
-                    "Continue building your knowledge and complete the remaining lessons."}
-                </p>
-
-                {/* Progress */}
-
-                <div className="mt-7">
-
-                  <div className="flex justify-between text-sm mb-2">
-
-                    <span className="font-medium text-slate-600">
-                      Progress
-                    </span>
-
-                    <span className="font-semibold text-[#134F73]">
-                      {course.progress || 0}%
-                    </span>
-
-                  </div>
-
-                  <div className="h-3 rounded-full bg-slate-200 overflow-hidden">
-
-                    <div
-                      className="h-full rounded-full bg-[#F4B321]"
-                      style={{
-                        width: `${course.progress || 0}%`,
-                      }}
-                    />
-
-                  </div>
-
-                </div>
-
-                <button
-                  onClick={() =>
-                    navigate(`/student/courses/${course._id}`)
-                  }
-                  className="mt-8 w-full rounded-2xl bg-[#134F73] text-white py-4 font-semibold hover:bg-[#0F4566] transition"
-                >
-                  Continue Course
-                </button>
-
-              </div>
-
-            </div>
-
-          ))}
-
-        </div>
-
-      </section>
-
-      {/* ======================================== */}
-      {/* Learning Progress */}
-      {/* ======================================== */}
-
-      <section className="mt-16">
-
-        <h2 className="font-serif text-5xl text-[#134F73] mb-8">
-          Learning Progress
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-8">
-
-            <p className="text-slate-500 text-sm uppercase tracking-[0.3em]">
-              Courses
-            </p>
-
-            <h3 className="mt-4 text-5xl font-serif text-[#134F73]">
-              {coursesList.length}
-            </h3>
-
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-8">
-
-            <p className="text-slate-500 text-sm uppercase tracking-[0.3em]">
-              Completed
-            </p>
-
-            <h3 className="mt-4 text-5xl font-serif text-[#134F73]">
-              {completedLessons}
-            </h3>
-
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-8">
-
-            <p className="text-slate-500 text-sm uppercase tracking-[0.3em]">
-              Progress
-            </p>
-
-            <h3 className="mt-4 text-5xl font-serif text-[#134F73]">
-              {currentCourse.progress}%
-            </h3>
-
-          </div>
-
-          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-8">
-
-            <p className="text-slate-500 text-sm uppercase tracking-[0.3em]">
-              Certificates
-            </p>
-
-            <h3 className="mt-4 text-5xl font-serif text-[#134F73]">
-              0
-            </h3>
-
-          </div>
-
-        </div>
-
-      </section>
-            {/* ======================================== */}
-      {/* Announcements & Events */}
-      {/* ======================================== */}
-
-      <section className="mt-16 grid grid-cols-1 xl:grid-cols-2 gap-8">
-
-        {/* Announcements */}
-
-        <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-8">
-
-          <div className="flex items-center justify-between mb-8">
-
-            <h2 className="font-serif text-4xl text-[#134F73]">
-              Announcements
-            </h2>
-
-            <button className="text-[#F4B321] font-semibold hover:underline">
-              View All
-            </button>
-
-          </div>
-
-          <div className="space-y-6">
-
-            <div className="border-l-4 border-[#F4B321] pl-5">
-
-              <p className="text-sm text-slate-500">
-                Today
-              </p>
-
-              <h4 className="mt-2 font-bold text-xl text-[#134F73]">
-                Welcome to Unleash Academy
-              </h4>
-
-              <p className="mt-3 text-slate-600 leading-8">
-                Begin your transformational journey by completing your
-                first lesson and introducing yourself to the community.
-              </p>
-
-            </div>
-
-            <div className="border-l-4 border-[#134F73] pl-5">
-
-              <p className="text-sm text-slate-500">
-                This Week
-              </p>
-
-              <h4 className="mt-2 font-bold text-xl text-[#134F73]">
-                Live Coaching Session
-              </h4>
-
-              <p className="mt-3 text-slate-600 leading-8">
-                Join Dr. Konfirm this Thursday for an exclusive coaching
-                session focused on leadership and personal transformation.
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Upcoming Events */}
-
-        <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-8">
-
-          <div className="flex items-center justify-between mb-8">
-
-            <h2 className="font-serif text-4xl text-[#134F73]">
-              Upcoming Events
-            </h2>
-
-            <button className="text-[#F4B321] font-semibold hover:underline">
-              View Calendar
-            </button>
-
-          </div>
-
-          <div className="space-y-5">
-
-            <div className="rounded-2xl border border-slate-200 p-5">
-
-              <p className="text-[#F47A20] font-semibold">
-                28 JUL
-              </p>
-
-              <h4 className="mt-2 text-xl font-bold text-[#134F73]">
-                Leadership Masterclass
-              </h4>
-
-              <p className="mt-2 text-slate-500">
-                2:00 PM • Live Zoom Session
-              </p>
-
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 p-5">
-
-              <p className="text-[#F47A20] font-semibold">
-                04 AUG
-              </p>
-
-              <h4 className="mt-2 text-xl font-bold text-[#134F73]">
-                Community Networking
-              </h4>
-
-              <p className="mt-2 text-slate-500">
-                Meet fellow learners and share experiences.
-              </p>
-
-            </div>
-
-            <div className="rounded-2xl border border-slate-200 p-5">
-
-              <p className="text-[#F47A20] font-semibold">
-                11 AUG
-              </p>
-
-              <h4 className="mt-2 text-xl font-bold text-[#134F73]">
-                Business Growth Workshop
-              </h4>
-
-              <p className="mt-2 text-slate-500">
-                Practical systems for scaling your business.
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
-      </section>
 
     </div>
   );

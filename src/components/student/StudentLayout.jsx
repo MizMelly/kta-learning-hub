@@ -95,54 +95,67 @@ export default function StudentLayout() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F5F7FA]">
+    <div className="min-h-screen bg-[#F5F7FA] overflow-x-hidden">
+
       {/* Mobile Header */}
-      <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-5 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
+
+      <header className="lg:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between shadow-sm">
+
+        <div className="flex items-center gap-3 min-w-0">
+
           <img
             src={logo}
             alt="Unleash Academy"
-            className="h-12 w-auto"
+            className="h-10 sm:h-12 w-auto shrink-0"
           />
 
-          <div>
-            <h2 className="font-bold text-[#0F2D52]">
+          <div className="min-w-0">
+
+            <h2 className="font-bold text-[#0F2D52] text-sm sm:text-base truncate">
               Unleash Academy
             </h2>
 
-            <p className="text-xs text-slate-500">
+            <p className="text-[11px] sm:text-xs text-slate-500">
               Student Portal
             </p>
+
           </div>
+
         </div>
 
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="w-11 h-11 rounded-xl border border-slate-200 flex items-center justify-center"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl border border-slate-200 flex items-center justify-center shrink-0"
         >
           {sidebarOpen ? (
-            <X size={22} />
+            <X size={20} />
           ) : (
-            <Menu size={22} />
+            <Menu size={20} />
           )}
         </button>
+
       </header>
 
       {/* Mobile Overlay */}
+
       {sidebarOpen && (
         <div
           onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40 lg:hidden"
         />
       )}
-            {/* Sidebar */}
+
+      {/* Sidebar */}
+
       <aside
         className={`
           fixed
           top-0
           left-0
-          h-full
-          w-72
+          h-screen
+          w-[85%]
+          max-w-xs
+          lg:w-72
           bg-white
           border-r
           border-slate-200
@@ -153,103 +166,127 @@ export default function StudentLayout() {
           duration-300
           flex
           flex-col
+          overflow-y-auto
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
         `}
       >
+
         {/* Logo */}
-        <div className="px-8 py-8 border-b border-slate-200">
-          <div className="flex items-center gap-4">
+
+        <div className="px-5 sm:px-8 py-6 sm:py-8 border-b border-slate-200">
+
+          <div className="flex items-center gap-3 sm:gap-4">
+
             <img
               src={logo}
               alt="Unleash Academy"
-              className="h-14 w-auto"
+              className="h-12 sm:h-14 w-auto"
             />
 
             <div>
-              <h2 className="text-3xl font-bold text-[#0F4D74] leading-none">
+
+              <h2 className="text-2xl sm:text-3xl font-bold text-[#0F4D74] leading-none">
                 Unleash
               </h2>
 
-              <p className="text-[#F47A20] tracking-[0.35em] text-sm mt-2 uppercase">
+              <p className="text-[#F47A20] tracking-[0.25em] sm:tracking-[0.35em] text-xs sm:text-sm mt-1 sm:mt-2 uppercase">
                 Academy
               </p>
+
             </div>
+
           </div>
+
         </div>
+                {/* Navigation */}
 
-       {/* Navigation */}
-<nav className="flex-1 px-5 py-8 space-y-4">
-  {navItems.map((item, index) => {
-    const Icon = item.icon;
+        <nav className="flex-1 px-4 sm:px-5 py-5 sm:py-8 space-y-3 sm:space-y-4 overflow-y-auto">
 
-    // Disabled (not clickable) items
-    if (!item.to) {
-      return (
-        <div
-          key={index}
-          className="flex items-center gap-4 rounded-2xl px-5 py-5 font-semibold text-lg bg-[#134F73] text-white opacity-70 cursor-default select-none"
-        >
-          <Icon size={22} />
-          <span>{item.label}</span>
-        </div>
-      );
-    }
+          {navItems.map((item, index) => {
+            const Icon = item.icon;
 
-    // Clickable items
-    return (
-      <NavLink
-        key={item.to}
-        to={item.to}
-        onClick={() => setSidebarOpen(false)}
-        className={({ isActive }) =>
-          `flex items-center gap-4 rounded-2xl px-5 py-5 font-semibold text-lg transition-all duration-300 ${
-            isActive
-              ? "bg-[#134F73] text-white shadow-lg"
-              : "bg-[#134F73] text-white hover:bg-[#0F4566]"
-          }`
-        }
-      >
-        <Icon size={22} />
-        <span>{item.label}</span>
-      </NavLink>
-    );
-  })}
-</nav>
-        
+            // Disabled Items
+            if (!item.to) {
+              return (
+                <div
+                  key={index}
+                  className="flex items-center gap-3 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 font-semibold text-base sm:text-lg bg-[#134F73] text-white opacity-70 cursor-default select-none"
+                >
+                  <Icon size={20} />
+                  <span>{item.label}</span>
+                </div>
+              );
+            }
+
+            // Active Items
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                onClick={() => setSidebarOpen(false)}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 font-semibold text-base sm:text-lg transition-all duration-300 ${
+                    isActive
+                      ? "bg-[#134F73] text-white shadow-lg"
+                      : "bg-[#134F73] text-white hover:bg-[#0F4566]"
+                  }`
+                }
+              >
+                <Icon size={20} />
+                <span>{item.label}</span>
+              </NavLink>
+            );
+          })}
+
+        </nav>
+
         {/* Profile */}
-        <div className="border-t border-slate-200 p-6">
-          <div className="flex items-center gap-4 mb-5">
-            <div className="w-14 h-14 rounded-full bg-[#134F73] text-white flex items-center justify-center text-xl font-bold">
+
+        <div className="border-t border-slate-200 p-4 sm:p-6">
+
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+
+            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#134F73] text-white flex items-center justify-center text-lg sm:text-xl font-bold shrink-0">
               {(user?.fullName || "S").charAt(0).toUpperCase()}
             </div>
 
-            <div className="min-w-0">
-              <h4 className="font-semibold text-[#134F73] truncate">
+            <div className="min-w-0 flex-1">
+
+              <h4 className="font-semibold text-[#134F73] text-sm sm:text-base truncate">
                 {user?.fullName || "Student"}
               </h4>
 
-              <p className="text-sm text-slate-500 truncate">
+              <p className="text-xs sm:text-sm text-slate-500 truncate">
                 {user?.email}
               </p>
+
             </div>
+
           </div>
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 py-3 text-[#475569] hover:bg-red-50 hover:text-red-600 transition"
+            className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 py-3 text-sm sm:text-base text-[#475569] hover:bg-red-50 hover:text-red-600 transition"
           >
             <LogOut size={18} />
             Logout
           </button>
+
         </div>
+
       </aside>
-            {/* Main Content */}
-      <main className="lg:ml-72 min-h-screen">
-        <div className="min-h-screen">
+
+      {/* Main Content */}
+
+      <main className="lg:ml-72 min-h-screen overflow-x-hidden">
+
+        <div className="min-h-screen w-full">
           <Outlet />
         </div>
+
       </main>
+
     </div>
   );
 }

@@ -90,20 +90,20 @@ export default function CourseDetails() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-6 py-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
         {/* Back button */}
         <button
           onClick={() => navigate("/student/courses")}
-          className="flex items-center gap-2 text-sm text-[#0F2D52] font-medium mb-6 hover:underline"
+          className="flex items-center gap-2 text-sm text-[#0F2D52] font-medium mb-4 sm:mb-6 hover:underline"
         >
           <ArrowLeft size={16} />
           Back to My Courses
         </button>
 
-        <div className="grid lg:grid-cols-[1fr_320px] gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 lg:gap-8">
           {/* Left */}
           <div>
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 leading-tight">
               {course.title}
             </h1>
 
@@ -111,7 +111,7 @@ export default function CourseDetails() {
               {course.instructor || "KTA Faculty"}
             </p>
 
-            <p className="mt-6 text-lg text-gray-600 leading-relaxed">
+            <p className="mt-4 sm:mt-6 text-base sm:text-lg text-gray-600 leading-7 sm:leading-relaxed">
               {course.description || "No description available."}
             </p>
 
@@ -135,7 +135,7 @@ export default function CourseDetails() {
 
             {/* Progress (only if enrolled) */}
             {isEnrolled && (
-              <div className="mt-8 border border-slate-200 rounded-3xl p-6 bg-white">
+              <div className="mt-6 sm:mt-8 border border-slate-200 rounded-2xl sm:rounded-3xl p-4 sm:p-6 bg-white">
                 <div className="flex justify-between mb-2">
                   <span className="font-medium text-[#0B1F3A]">Your progress</span>
                   <span className="font-bold text-[#0F2D52]">{progress}%</span>
@@ -160,7 +160,7 @@ export default function CourseDetails() {
                 <div className="space-y-6">
                   {modulesList.map((mod, modIdx) => (
                     <div key={mod.id}>
-                      <h2 className="text-xl font-bold text-[#0B1F3A] mb-4">
+                      <h2 className="text-lg sm:text-xl font-bold text-[#0B1F3A] mb-3 sm:mb-4">
                         Module {modIdx + 1}: {mod.title}
                       </h2>
 
@@ -175,8 +175,7 @@ export default function CourseDetails() {
                                 isEnrolled
                                   ? navigate(`/student/courses/${courseId}/lessons/${lesson.id}`)
                                   : null
-                              }
-                              className={`bg-white border border-slate-200 rounded-2xl p-5 flex items-center justify-between transition ${
+                              }className={`bg-white border border-slate-200 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-3 transition ${
                                 isEnrolled
                                   ? "hover:shadow-md cursor-pointer"
                                   : "opacity-60 cursor-not-allowed"
@@ -186,7 +185,7 @@ export default function CourseDetails() {
                                 <p className="text-sm text-gray-400">
                                   Lesson {lessonIdx + 1}
                                 </p>
-                                <h3 className="text-lg font-semibold text-[#0B1F3A]">
+                                <h3 className="text-base sm:text-lg font-semibold text-[#0B1F3A] leading-snug">
                                   {lesson.title}
                                 </h3>
                                 {lesson.duration && (
@@ -218,8 +217,8 @@ export default function CourseDetails() {
           </div>
 
           {/* Right Card */}
-          <div className="border border-slate-200 rounded-3xl p-6 h-fit shadow-sm bg-white lg:sticky lg:top-6">
-            <h2 className="text-4xl font-bold text-[#0F66B7]">
+          <div className="border border-slate-200 rounded-2xl sm:rounded-3xl p-5 sm:p-6 h-fit shadow-sm bg-white lg:sticky lg:top-6 order-first lg:order-last">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#0F66B7]">
               ₦{(course.price || 0).toLocaleString()}
             </h2>
 
@@ -237,8 +236,8 @@ export default function CourseDetails() {
                         ? navigate(`/student/courses/${courseId}/lessons/${firstLesson.id}`)
                         : null
                     }
-                    className="w-full mt-6 bg-[#0F66B7] text-white py-4 rounded-2xl font-semibold flex justify-center items-center gap-2 hover:bg-[#0d5aa3] transition"
-                  >
+                   className="w-full mt-5 sm:mt-6 bg-[#0F66B7] text-white py-3.5 sm:py-4 rounded-2xl font-semibold flex justify-center items-center gap-2 hover:bg-[#0d5aa3] transition"
+                   >
                     {progress > 0 ? "Continue Learning" : "Start Learning"}
                     <ArrowRight size={20} />
                   </button>
@@ -251,13 +250,13 @@ export default function CourseDetails() {
             ) : (
               <button
                 onClick={() => navigate("/student/courses")}
-                className="w-full mt-6 bg-[#0F2D52] text-white py-4 rounded-2xl font-semibold hover:bg-[#1E4A7A] transition"
+                className="w-full mt-5 sm:mt-6 bg-[#0F2D52] text-white py-3.5 sm:py-4 rounded-2xl font-semibold hover:bg-[#1E4A7A] transition"
               >
                 Enroll to Access
               </button>
             )}
 
-            <p className="text-gray-500 mt-4 text-sm">
+            <p className="text-gray-500 mt-4 text-sm text-center lg:text-left">
               {allLessons.length} lesson{allLessons.length !== 1 ? "s" : ""} · lifetime access
             </p>
           </div>
