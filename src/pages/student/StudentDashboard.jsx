@@ -10,39 +10,48 @@ import {
 import { useNavigate } from "react-router-dom";
 import { auth, courses } from "../../services/api";
 
-export default function Dashboard() {
+export default function StudentDashboard() {
   const navigate = useNavigate();
 
+  const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [coursesList, setCoursesList] = useState([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const loadDashboard = async () => {
-      try {
-        const [profile, myCourses] = await Promise.all([
-          auth.getProfile(),
-          courses.getMyCourses(),
-        ]);
+ useEffect(() => {
+  const loadDashboard = async () => {
+    try {
+      const [profileResponse, coursesResponse] = await Promise.all([
+        auth.getProfile(),
+        courses.getAll(),
+      ]);
 
-        setUser(profile.data || profile);
+      const profile =
+        profileResponse?.data ??
+        profileResponse ??
+        null;
 
-        const data =
-          myCourses?.data ||
-          myCourses?.courses ||
-          myCourses ||
-          [];
+      setUser(profile);
 
-        setCoursesList(Array.isArray(data) ? data : []);
-      } catch (error) {
-        console.error("Dashboard Error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const publishedCourses =
+        coursesResponse?.data ??
+        coursesResponse?.courses ??
+        coursesResponse ??
+        [];
 
-    loadDashboard();
-  }, []);
+      setCoursesList(
+        Array.isArray(publishedCourses)
+          ? publishedCourses
+          : []
+      );
+    } catch (err) {
+      console.error("Dashboard Error:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadDashboard();
+}, []);
 
   const greeting = useMemo(() => {
     const hour = new Date().getHours();
@@ -52,17 +61,28 @@ export default function Dashboard() {
     return "Good evening";
   }, []);
 
-  const firstName = user?.fullName?.split(" ")[0] || "Student";
+  const firstName =
+    user?.fullName?.split(" ")[0] || "Student";
 
   const currentCourse =
     coursesList.length > 0
       ? coursesList[0]
-      : {
-          title: "Social Media Management",
-          progress: 100,
-        };
+      : null;
 
-  const completedLessons = 12;
+  const progress = Math.min(
+    100,
+    Math.max(
+      0,
+      Number(currentCourse?.progress || 0)
+    )
+  );
+
+  const progressOffset =
+    302 - (302 * progress) / 100;
+
+  const completedLessons =
+    Number(currentCourse?.completedLessons || 0);
+
   const journalEntries = 4;
 
   const communityPosts = [
@@ -119,7 +139,7 @@ export default function Dashboard() {
 
         </div>
 
-        <button className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-white shadow flex items-center justify-center shrink-0">
+        <button className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-white shadow flex items-center justify-center">
 
           <Bell
             size={20}
@@ -134,18 +154,19 @@ export default function Dashboard() {
 
       {/* Hero */}
 
-      <div className="mt-8 rounded-3xl lg:rounded-[32px] bg-[#134F73] text-white p-5 sm:p-8 lg:p-12 shadow-2xl">
+      <div className="mt-8 rounded-[32px] bg-[#134F73] text-white p-6 lg:p-12 shadow-2xl">
 
-        <div className="flex flex-col lg:flex-row items-center gap-6 lg:gap-10">
+        <div className="flex flex-col lg:flex-row items-center gap-10">
 
-          {/* Progress Circle */}
+          {/* Progress */}
 
-          <div className="relative w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40">
+          <div className="relative w-40 h-40">
 
             <svg
-              className="w-28 h-28 sm:w-36 sm:h-36 lg:w-40 lg:h-40 -rotate-90"
+              className="w-40 h-40 -rotate-90"
               viewBox="0 0 120 120"
             >
+
               <circle
                 cx="60"
                 cy="60"
@@ -162,25 +183,23 @@ export default function Dashboard() {
                 stroke="#F4B321"
                 strokeWidth="8"
                 fill="transparent"
-                strokeDasharray={302}
-                strokeDashoffset={
-                  302 - (302 * currentCourse.progress) / 100
-                }
+                strokeDasharray="302"
+                strokeDashoffset={progressOffset}
                 strokeLinecap="round"
               />
+
             </svg>
 
             <div className="absolute inset-0 flex items-center justify-center">
 
-              <span className="text-3xl sm:text-4xl lg:text-5xl font-serif font-bold">
-                {currentCourse.progress}%
+              <span className="text-5xl font-serif font-bold">
+                {progress}%
               </span>
 
             </div>
 
           </div>
-
-          {/* Course Info */}
+                    {/* Course Information */}
 
           <div className="flex-1 text-center lg:text-left">
 
@@ -188,27 +207,52 @@ export default function Dashboard() {
               Up Next
             </p>
 
-            <h2 className="font-serif text-2xl sm:text-4xl lg:text-6xl mt-2 sm:mt-3 font-bold capitalize leading-tight">
-              {currentCourse.title}
+            <h2 className="font-serif text-2xl sm:text-4xl lg:text-6xl mt-3 font-bold capitalize leading-tight">
+              {currentCourse?.title || "No Published Courses"}
             </h2>
 
-            <div className="flex items-center justify-center lg:justify-start gap-2 sm:gap-3 mt-4 sm:mt-6 text-base sm:text-xl lg:text-2xl">
+            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-base sm:text-lg">
 
-              <Clock3
-                size={20}
-                className="text-[#F4B321]"
-              />
+              <div className="flex items-center gap-2">
 
-              <span>Continue Learning</span>
+                <BookOpen
+                  size={20}
+                  className="text-[#F4B321]"
+                />
+
+                <span>
+                  {currentCourse?.totalLessons || 0} Lessons
+                </span>
+
+              </div>
+
+              <div className="flex items-center gap-2">
+
+                <Clock3
+                  size={20}
+                  className="text-[#F4B321]"
+                />
+
+                <span>
+                  {currentCourse?.duration || "Self-paced"}
+                </span>
+
+              </div>
 
             </div>
 
             <button
               onClick={() => navigate("/student/courses")}
-              className="mt-6 sm:mt-8 w-full sm:w-fit justify-center bg-white text-[#134F73] rounded-full px-6 sm:px-10 py-3 sm:py-4 flex items-center gap-3 font-semibold hover:scale-105 transition"
+              className="mt-8 bg-white text-[#134F73] rounded-full px-8 py-4 flex items-center gap-3 font-semibold hover:scale-105 transition mx-auto lg:mx-0"
             >
-              <Play size={18} fill="#134F73" />
-              Resume Lesson
+
+              <Play
+                size={18}
+                fill="#134F73"
+              />
+
+              Browse Courses
+
             </button>
 
           </div>
@@ -217,25 +261,25 @@ export default function Dashboard() {
 
       </div>
 
-      {/* Activity + Community */}
+      {/* Main Content */}
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 mt-8 lg:mt-10">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-10">
 
-        {/* Left Column */}
+        {/* Left Side */}
 
         <div className="lg:col-span-3">
 
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#134F73] mb-5 lg:mb-8">
+          <h2 className="font-serif text-4xl text-[#134F73] mb-8">
             Your Activity
           </h2>
 
-          <div className="grid grid-cols-2 gap-4 sm:gap-5">
+          <div className="grid grid-cols-2 gap-5">
 
             {/* Lessons */}
 
-            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-md border border-slate-100 p-5 sm:p-6">
+            <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-6">
 
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-5">
 
                 <BookOpen
                   size={20}
@@ -244,11 +288,11 @@ export default function Dashboard() {
 
               </div>
 
-              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#134F73]">
+              <h3 className="text-5xl font-serif text-[#134F73]">
                 {completedLessons}
               </h3>
 
-              <p className="uppercase tracking-[0.25em] text-[10px] sm:text-xs text-slate-500 mt-3 leading-5">
+              <p className="uppercase tracking-[0.25em] text-xs text-slate-500 mt-3 leading-5">
                 Lessons
                 <br />
                 Completed
@@ -258,9 +302,9 @@ export default function Dashboard() {
 
             {/* Journal */}
 
-            <div className="bg-white rounded-2xl lg:rounded-3xl shadow-md border border-slate-100 p-5 sm:p-6">
+            <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-6">
 
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
 
                 <PencilLine
                   size={20}
@@ -269,11 +313,11 @@ export default function Dashboard() {
 
               </div>
 
-              <h3 className="text-3xl sm:text-4xl lg:text-5xl font-serif text-[#134F73]">
+              <h3 className="text-5xl font-serif text-[#134F73]">
                 {journalEntries}
               </h3>
 
-              <p className="uppercase tracking-[0.25em] text-[10px] sm:text-xs text-slate-500 mt-3 leading-5">
+              <p className="uppercase tracking-[0.25em] text-xs text-slate-500 mt-3 leading-5">
                 Journal
                 <br />
                 Entries
@@ -285,7 +329,7 @@ export default function Dashboard() {
 
           {/* Upcoming Call */}
 
-          <div className="bg-white rounded-2xl lg:rounded-3xl shadow-md border border-slate-100 p-5 sm:p-7 mt-6">
+          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-7 mt-6">
 
             <div className="flex items-center gap-3 mb-5">
 
@@ -294,50 +338,55 @@ export default function Dashboard() {
                 className="text-[#134F73]"
               />
 
-              <h3 className="font-serif text-xl sm:text-2xl text-[#134F73]">
+              <h3 className="font-serif text-2xl text-[#134F73]">
                 Upcoming Live Call
               </h3>
 
             </div>
 
-            <h4 className="font-semibold text-lg sm:text-xl lg:text-2xl text-[#134F73]">
+            <h4 className="font-semibold text-xl text-[#134F73]">
               Group Coaching: Alignment
             </h4>
 
-            <p className="text-slate-500 mt-3 text-sm sm:text-base">
-              Tomorrow, 14:00 GMT
+            <p className="text-slate-500 mt-3">
+              Tomorrow, 2:00 PM GMT
             </p>
 
             <button className="w-full mt-6 rounded-2xl border border-slate-200 py-3 font-medium hover:bg-slate-50 transition">
+
               Add to Calendar
+
             </button>
 
           </div>
 
         </div>
-                {/* Right Column */}
+
+        {/* Right Side */}
 
         <div className="lg:col-span-9">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
 
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 lg:mb-8">
-
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl text-[#134F73]">
+            <h2 className="font-serif text-4xl lg:text-5xl text-[#134F73]">
               Community Highlights
             </h2>
 
-            <button className="self-start sm:self-auto text-[#F4B321] font-semibold hover:underline text-sm sm:text-base">
+            <button
+              onClick={() => navigate("/student/community")}
+              className="self-start sm:self-auto text-[#F4B321] font-semibold hover:underline"
+            >
               View All
             </button>
 
           </div>
 
-          <div className="bg-white rounded-2xl lg:rounded-3xl border border-slate-100 shadow-md overflow-hidden">
+          <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden">
 
             {communityPosts.map((post, index) => (
 
               <div
                 key={post.id}
-                className={`flex gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8 py-5 sm:py-7 ${
+                className={`flex gap-6 px-8 py-7 ${
                   index !== communityPosts.length - 1
                     ? "border-b border-slate-100"
                     : ""
@@ -346,29 +395,27 @@ export default function Dashboard() {
 
                 {/* Avatar */}
 
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-[#EEF3EF] flex items-center justify-center font-bold text-[#134F73] shrink-0">
-
+                <div className="w-12 h-12 rounded-full bg-[#EEF3EF] flex items-center justify-center font-bold text-[#134F73] shrink-0">
                   {post.initials}
-
                 </div>
 
                 {/* Content */}
 
-                <div className="flex-1 min-w-0">
+                <div className="flex-1">
 
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
 
-                    <h4 className="font-bold text-lg sm:text-xl text-[#134F73]">
+                    <h4 className="font-bold text-xl text-[#134F73]">
                       {post.name}
                     </h4>
 
-                    <span className="text-slate-400 text-xs sm:text-sm">
+                    <span className="text-slate-400 text-sm">
                       {post.time}
                     </span>
 
                   </div>
 
-                  <p className="text-slate-600 leading-7 sm:leading-8 lg:leading-9 mt-3 sm:mt-4 text-sm sm:text-base lg:text-lg">
+                  <p className="text-slate-600 leading-8 mt-4 text-lg">
                     {post.message}
                   </p>
 
@@ -380,10 +427,137 @@ export default function Dashboard() {
 
           </div>
 
-        </div>
+          {/* Published Courses */}
+
+          <div className="mt-10">
+
+            <div className="flex items-center justify-between mb-6">
+
+              <h2 className="font-serif text-4xl text-[#134F73]">
+                Published Courses
+              </h2>
+
+              <button
+                onClick={() => navigate("/student/courses")}
+                className="text-[#F4B321] font-semibold hover:underline"
+              >
+                View All
+              </button>
+
+            </div>
+
+            {coursesList.length === 0 ? (
+
+              <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center shadow">
+
+                <BookOpen
+                  className="mx-auto text-[#134F73]"
+                  size={52}
+                />
+
+                <h3 className="mt-6 text-2xl font-semibold text-[#134F73]">
+                  No Published Courses
+                </h3>
+
+                <p className="mt-3 text-slate-500">
+                  Your administrator has not published any courses yet.
+                </p>
+
+              </div>
+
+            ) : (
+
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                                {coursesList.map((course) => (
+                  <div
+                    key={course.id}
+                    className="bg-white rounded-3xl shadow-md border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300"
+                  >
+                    {/* Thumbnail */}
+
+                    <div className="h-48 bg-slate-200 overflow-hidden">
+                      {course.thumbnailUrl ? (
+                        <img
+                          src={course.thumbnailUrl}
+                          alt={course.title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-[#134F73] text-white text-5xl font-bold">
+                          <BookOpen size={48} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Card Body */}
+
+                    <div className="p-6">
+
+                      <span className="inline-block bg-[#F4B321]/20 text-[#134F73] text-xs font-semibold px-3 py-1 rounded-full">
+                        {course.category || "General"}
+                      </span>
+
+                      <h3 className="mt-4 text-2xl font-serif font-bold text-[#134F73] line-clamp-2">
+                        {course.title}
+                      </h3>
+
+                      <p className="mt-3 text-slate-600 line-clamp-3">
+                        {course.description}
+                      </p>
+
+                      <div className="mt-6 space-y-2 text-sm text-slate-500">
+
+                        <div className="flex justify-between">
+                          <span>Duration</span>
+                          <span className="font-medium text-[#134F73]">
+                            {course.duration || "Self-paced"}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span>Level</span>
+                          <span className="font-medium text-[#134F73]">
+                            {course.level || "Beginner"}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span>Lessons</span>
+                          <span className="font-medium text-[#134F73]">
+                            {course.totalLessons || 0}
+                          </span>
+                        </div>
+
+                        <div className="flex justify-between">
+                          <span>Modules</span>
+                          <span className="font-medium text-[#134F73]">
+                            {course.totalModules || 0}
+                          </span>
+                        </div>
+
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          navigate(`/student/courses/${course.id}`)
+                        }
+                        className="mt-6 w-full bg-[#134F73] text-white py-3 rounded-xl font-semibold hover:bg-[#0f415f] transition"
+                      >
+                        View Course
+                      </button>
+
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+          </div>
+                  </div>
 
       </div>
 
     </div>
   );
 }
+  
