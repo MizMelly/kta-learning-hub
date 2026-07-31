@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Plus, Loader2, Trash2, ChevronRight, Globe, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { courses as coursesApi } from "../../services/api";
@@ -12,28 +12,36 @@ export default function Courses() {
   const [showCreate, setShowCreate] = useState(false);
   const [publishing, setPublishing] = useState({});
 
-  const fetchCourses = useCallback(async () => {
-  try {
-    setLoading(true);
-    setError(null);
+ useEffect(() => {
+  let mounted = true;
 
-    const res = await coursesApi.getAllAdmin();
+  const loadCourses = async () => {
+    try {
+      const res = await coursesApi.getAllAdmin();
 
-    const courses = res?.courses || res || [];
+      if (!mounted) return;
 
-    setCourseList(Array.isArray(courses) ? courses : []);
-  } catch (err) {
-    console.error("Fetch courses error:", err);
-    setError(err.message || "Failed to load courses");
-    setCourseList([]);
-  } finally {
-    setLoading(false);
-  }
+      setCourseList(Array.isArray(res) ? res : []);
+      setError(null);
+    } catch (err) {
+      if (!mounted) return;
+
+      console.error(err);
+      setError(err.message || "Failed to load courses");
+      setCourseList([]);
+    } finally {
+      if (mounted) {
+        setLoading(false);
+      }
+    }
+  };
+
+  loadCourses();
+
+  return () => {
+    mounted = false;
+  };
 }, []);
-
-useEffect(() => {
-  fetchCourses();
-}, [fetchCourses]);
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this course? This cannot be undone.")) return;
@@ -48,8 +56,8 @@ useEffect(() => {
   const handlePublishToggle = async (course) => {
     const newStatus = course.status?.toLowerCase() === "published" ? "Draft" : "Published";
     setPublishing((prev) => ({ ...prev, [course.id]: true }));
-    try {
-      await coursesApi.update(course.id, { Status: newStatus });
+    try { 
+      await coursesApi.update(course.id, { status: newStatus });
       // Update local state
       setCourseList((prev) =>
         prev.map((c) =>
@@ -185,12 +193,12 @@ useEffect(() => {
 
       {showCreate && (
         <CreateCourseModal
-          onClose={() => setShowCreate(false)}
-          onCreated={() => {
-            setShowCreate(false);
-            fetchCourses();
-          }}
-        />
+  onClose={() => setShowCreate(false)}
+  onCreated={() => {
+    setShowCreate(false);
+    window.location.reload();
+  }}
+/>
       )}
     </div>
   );

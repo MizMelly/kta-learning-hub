@@ -241,20 +241,18 @@ export default function StudentDashboard() {
 
             </div>
 
-            <button
-              onClick={() => navigate("/student/courses")}
-              className="mt-8 bg-white text-[#134F73] rounded-full px-8 py-4 flex items-center gap-3 font-semibold hover:scale-105 transition mx-auto lg:mx-0"
-            >
-
-              <Play
-                size={18}
-                fill="#134F73"
-              />
-
-              Browse Courses
-
-            </button>
-
+          <button
+  onClick={() => {
+    if (currentCourse?.id) {
+      navigate(`/student/courses/${currentCourse.id}`);
+    }
+  }}
+  disabled={!currentCourse}
+  className="mt-8 bg-white text-[#134F73] rounded-full px-8 py-4 flex items-center gap-3 font-semibold hover:scale-105 transition mx-auto lg:mx-0 disabled:opacity-50"
+>
+  <Play size={18} fill="#134F73" />
+  Browse Courses
+</button>
           </div>
 
         </div>
