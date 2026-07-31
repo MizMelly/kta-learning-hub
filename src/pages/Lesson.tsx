@@ -1,11 +1,11 @@
 import { useParams } from "react-router-dom";
-import LessonSidebar from "../../components/lesson/LessonSidebar";
-import VideoPlayer from "../../components/lesson/VideoPlayer";
-import AudioCard from "../../components/lesson/AudioCard";
-import LessonContent from "../../components/lesson/LessonContent";
-import ReflectionCard from "../../components/lesson/ReflectionCard";
-import LessonRating from "../../components/lesson/LessonRating";
-import LessonFooter from "../../components/lesson/LessonFooter";
+import LessonSidebar from "../components/lesson/LessonSidebar";
+import VideoPlayer from "../components/lesson/VideoPlayer";
+import AudioCard from "../components/lesson/AudioCard";
+import LessonContent from "../components/lesson/LessonContent";
+import ReflectionCard from "../components/lesson/ReflectionCard";
+import LessonRating from "../components/lesson/LessonRating";
+import LessonFooter from "../components/lesson/LessonFooter";
 
 export default function Lesson() {
   const { id } = useParams<{ id: string }>();

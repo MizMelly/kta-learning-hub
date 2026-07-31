@@ -1,8 +1,8 @@
-import ContactHero from "../Contact/ContactHero";
-import ContactInfo from "../Contact/ContactInfo";
-import ContactForm from "../Contact/ContactForm";
-import Navbar from "../Navbar";
-import Footer from "../Footer";
+import ContactHero from "../components/Contact/ContactHero";
+import ContactInfo from "../components/Contact/ContactInfo";
+import ContactForm from "../components/Contact/ContactForm";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 
 export default function Contact() {

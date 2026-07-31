@@ -12,36 +12,28 @@ export default function Courses() {
   const [showCreate, setShowCreate] = useState(false);
   const [publishing, setPublishing] = useState({});
 
- useEffect(() => {
-  let mounted = true;
-
-  const loadCourses = async () => {
+  const fetchCourses = async () => {
     try {
-      const res = await coursesApi.getAllAdmin();
-
-      if (!mounted) return;
-
-      setCourseList(Array.isArray(res) ? res : []);
+      setLoading(true);
       setError(null);
+      // FIX: Use getAllAdmin() to get ALL courses (draft + published), not just published
+      const res = await coursesApi.getAllAdmin();
+      // Handle paginated response: { courses: [...], totalCount, page, pageSize }
+      // or direct array fallback
+      const courses = res?.courses || res || [];
+      setCourseList(Array.isArray(courses) ? courses : []);
     } catch (err) {
-      if (!mounted) return;
-
-      console.error(err);
+      console.error("Fetch courses error:", err);
       setError(err.message || "Failed to load courses");
       setCourseList([]);
     } finally {
-      if (mounted) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
-  loadCourses();
-
-  return () => {
-    mounted = false;
-  };
-}, []);
+  useEffect(() => {
+    fetchCourses();
+  }, []);
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this course? This cannot be undone.")) return;
@@ -56,8 +48,8 @@ export default function Courses() {
   const handlePublishToggle = async (course) => {
     const newStatus = course.status?.toLowerCase() === "published" ? "Draft" : "Published";
     setPublishing((prev) => ({ ...prev, [course.id]: true }));
-    try { 
-      await coursesApi.update(course.id, { status: newStatus });
+    try {
+      await coursesApi.update(course.id, { Status: newStatus });
       // Update local state
       setCourseList((prev) =>
         prev.map((c) =>
@@ -193,12 +185,12 @@ export default function Courses() {
 
       {showCreate && (
         <CreateCourseModal
-  onClose={() => setShowCreate(false)}
-  onCreated={() => {
-    setShowCreate(false);
-    window.location.reload();
-  }}
-/>
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            fetchCourses();
+          }}
+        />
       )}
     </div>
   );

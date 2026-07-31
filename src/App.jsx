@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./components/Home";
 import Login from "./components/Login";
 import Register from "./components/Register";
-import AdminLayout from "./Layout/AdminLayout";
+import AdminLayout from "./layout/AdminLayout";
 import Dashboard from "./pages/admin/Dashboard";
 import Courses from "./pages/admin/Courses";
 import Students from "./pages/admin/Students";
@@ -17,11 +17,11 @@ import StudentDashboard from "./pages/student/StudentDashboard";
 import MyCourses from "./pages/student/MyCourses";
 import LessonPage from "./pages/student/LessonPage";
 import CourseDetails from "./pages/student/CourseDetails";
-import About from "./components/pages/About";
-import Programs from './components/pages/Programs';
-import Events  from './components/pages/Events';
-import Resources from './components/pages/Resources';
-import Contact from './components/pages/Contact';
+import About from "./pages/About";
+import Programs from './pages/Programs';
+import Events  from './pages/Events';
+import Resources from './pages/Resources';
+import Contact from './pages/Contact';
 
 
 

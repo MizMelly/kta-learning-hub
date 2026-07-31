@@ -1,561 +1,335 @@
-import { useEffect, useMemo, useState } from "react";
-import {
-  Bell,
-  Play,
-  Clock3,
-  BookOpen,
-  PencilLine,
-  CalendarDays,
-} from "lucide-react";
+import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, Clock, ArrowRight } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, courses } from "../../services/api";
+import { auth, enrollments, courses } from "../../services/api";
+import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
+
+const FLW_PUBLIC_KEY = "FLWPUBK_TEST-51090b4aa0ebefc8f37b147d7176fa8a-X";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
+  const [allCourses, setAllCourses] = useState([]);
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [user, setUser] = useState(null);
-  const [coursesList, setCoursesList] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
- useEffect(() => {
-  const loadDashboard = async () => {
-    try {
-      const [profileResponse, coursesResponse] = await Promise.all([
-        auth.getProfile(),
-        courses.getAll(),
-      ]);
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-      const profile =
-        profileResponse?.data ??
-        profileResponse ??
-        null;
+  // FIX: useFlutterwave at top level with dynamic config
+  const [flutterwaveConfig, setFlutterwaveConfig] = useState(null);
+  const handleFlutterwavePayment = useFlutterwave(flutterwaveConfig || {
+    public_key: FLW_PUBLIC_KEY,
+    tx_ref: "kta-init",
+    amount: 0,
+    currency: "NGN",
+    payment_options: "card",
+    customer: { email: "", phone_number: "", name: "" },
+    customizations: { title: "", description: "", logo: "" }
+  });
 
-      setUser(profile);
-
-      const publishedCourses =
-        coursesResponse?.data ??
-        coursesResponse?.courses ??
-        coursesResponse ??
-        [];
-
-      setCoursesList(
-        Array.isArray(publishedCourses)
-          ? publishedCourses
-          : []
-      );
-    } catch (err) {
-      console.error("Dashboard Error:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  loadDashboard();
-}, []);
-
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
+  // Fetch user profile, all courses, and enrolled courses
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [profileData, allData, enrolledData] = await Promise.all([
+          auth.getProfile(),
+          courses.getAll(),
+          enrollments.getMyCourses(),
+        ]);
+        setUser(profileData);
+        const allCoursesArray = Array.isArray(allData) ? allData : [];
+        const enrolledCoursesArray = Array.isArray(enrolledData) ? enrolledData : [];
+        setAllCourses(allCoursesArray);
+        setEnrolledCourses(enrolledCoursesArray);
+      } catch (err) {
+        setError(err.message || "Failed to load dashboard");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  const firstName =
-    user?.fullName?.split(" ")[0] || "Student";
+  const isEnrolled = (courseId) =>
+    enrolledCourses.some((c) => (c.courseId || c.id) === courseId);
 
-  const currentCourse =
-    coursesList.length > 0
-      ? coursesList[0]
-      : null;
+  const getEnrollment = (courseId) =>
+    enrolledCourses.find((c) => (c.courseId || c.id) === courseId);
 
-  const progress = Math.min(
-    100,
-    Math.max(
-      0,
-      Number(currentCourse?.progress || 0)
-    )
-  );
+  const initiatePayment = (course) => {
+    setSelectedCourse(course);
+    setPaymentLoading(true);
 
-  const progressOffset =
-    302 - (302 * progress) / 100;
+    const config = {
+      public_key: FLW_PUBLIC_KEY,
+      tx_ref: "kta-" + Date.now(),
+      amount: course.price || 0,
+      currency: "NGN",
+      payment_options: "card,mobilemoney,ussd,banktransfer",
+      customer: {
+        email: user?.email || user?.Email || "student@kta.com",
+        phone_number: user?.phoneNumber || "",
+        name: user?.fullName || user?.FullName || "Student",
+      },
+      customizations: {
+        title: course.title,
+        description: "Course enrollment payment",
+        logo: "https://kta-learning-hub-2936.vercel.app/logo.png",
+      },
+    };
 
-  const completedLessons =
-    Number(currentCourse?.completedLessons || 0);
+    setFlutterwaveConfig(config);
+  };
 
-  const journalEntries = 4;
+  // Handle payment when config changes
+  useEffect(() => {
+    if (!flutterwaveConfig || !paymentLoading) return;
 
-  const communityPosts = [
-    {
-      id: 1,
-      initials: "D",
-      name: "David O.",
-      message:
-        "Just finished Module 2. The exercise on identifying core limiting beliefs completely shifted my perspective on my business plateau.",
-      time: "2h ago",
-    },
-    {
-      id: 2,
-      initials: "E",
-      name: "Elena R.",
-      message:
-        "Today's coaching session reminded me that leadership starts with self-awareness before it ever influences others.",
-      time: "5h ago",
-    },
-    {
-      id: 3,
-      initials: "M",
-      name: "Michael A.",
-      message:
-        "Looking forward to tomorrow's live coaching. Who else is joining the session?",
-      time: "Yesterday",
-    },
-  ];
+    const processPayment = async () => {
+      try {
+        handleFlutterwavePayment({
+          callback: async (response) => {
+            console.log("Flutterwave response:", response);
+            closePaymentModal();
+
+            const isSuccess = 
+              response.status === "successful" || 
+              response.status === "completed" || 
+              response.status === "success" ||
+              response.success === true;
+
+            if (isSuccess) {
+              try {
+                const enrollRes = await enrollments.enroll({ courseId: selectedCourse.id });
+                const enrollmentId = enrollRes?.data?.id || enrollRes?.id || enrollRes?.data?.enrollmentId || enrollRes?.enrollmentId;
+
+                if (enrollmentId) {
+                  await enrollments.pay({
+                    enrollmentId: enrollmentId,
+                    paymentMethod: "Flutterwave",
+                    paymentReference: response.tx_ref || response.data?.tx_ref,
+                    transactionId: response.transaction_id?.toString() || response.data?.id?.toString() || response.tx_ref,
+                  });
+                }
+
+                setPaymentSuccess(true);
+                const [allData, enrolledData] = await Promise.all([
+                  courses.getAll(),
+                  enrollments.getMyCourses(),
+                ]);
+                setAllCourses(Array.isArray(allData) ? allData : []);
+                setEnrolledCourses(Array.isArray(enrolledData) ? enrolledData : []);
+                setTimeout(() => setPaymentSuccess(false), 4000);
+              } catch (err) {
+                alert("Payment recorded but enrollment failed: " + err.message);
+              }
+            } else {
+              alert("Payment was not successful. Status: " + (response.status || "unknown"));
+            }
+            setPaymentLoading(false);
+            setFlutterwaveConfig(null);
+          },
+          onClose: () => {
+            setPaymentLoading(false);
+            setFlutterwaveConfig(null);
+          },
+        });
+      } catch (err) {
+        console.error("Payment error:", err);
+        setPaymentLoading(false);
+        setFlutterwaveConfig(null);
+      }
+    };
+
+    processPayment();
+  }, [flutterwaveConfig]);
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#F8F8F5] flex items-center justify-center">
-        <div className="w-14 h-14 rounded-full border-4 border-[#134F73] border-t-transparent animate-spin" />
+      <div className="max-w-6xl mx-auto px-6 py-20 flex justify-center">
+        <Loader2 className="animate-spin text-[#0F66B7]" size={40} />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-6xl mx-auto px-6 py-20 text-center">
+        <p className="text-red-500">{error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 bg-[#0F66B7] text-white px-6 py-2 rounded-xl"
+        >
+          Retry
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#F8F8F5] min-h-screen px-4 sm:px-6 lg:px-10 py-5 sm:py-8">
+    <div className="max-w-6xl mx-auto px-6 py-10 min-h-screen">
 
-      {/* Header */}
-
-      <div className="flex items-start justify-between gap-4">
-
-        <div className="flex-1">
-
-          <h1 className="font-serif text-3xl sm:text-4xl lg:text-6xl font-bold text-[#134F73] leading-tight">
-            {greeting}, {firstName}
-          </h1>
-
-          <p className="mt-2 text-base sm:text-lg lg:text-xl text-slate-500">
-            "Excellence is not an act, but a habit."
-          </p>
-
-        </div>
-
-        <button className="relative w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-full bg-white shadow flex items-center justify-center">
-
-          <Bell
-            size={20}
-            className="text-[#134F73]"
-          />
-
-          <span className="absolute top-3 right-3 w-2.5 h-2.5 rounded-full bg-red-500" />
-
-        </button>
-
+      {/* Welcome */}
+      <div className="mb-10">
+        <h1 className="text-5xl font-bold text-slate-900">
+          Welcome back, {user?.fullName?.split(" ")[0] || "Student"}.
+        </h1>
+        <p className="text-gray-500 mt-2 text-lg">
+          Continue your learning journey.
+        </p>
       </div>
 
-      {/* Hero */}
+      {/* Title */}
+      <h2 className="text-3xl font-bold text-slate-900 mb-6">My Courses</h2>
 
-      <div className="mt-8 rounded-[32px] bg-[#134F73] text-white p-6 lg:p-12 shadow-2xl">
-
-        <div className="flex flex-col lg:flex-row items-center gap-10">
-
-          {/* Progress */}
-
-          <div className="relative w-40 h-40">
-
-            <svg
-              className="w-40 h-40 -rotate-90"
-              viewBox="0 0 120 120"
-            >
-
-              <circle
-                cx="60"
-                cy="60"
-                r="48"
-                stroke="#355E78"
-                strokeWidth="8"
-                fill="transparent"
-              />
-
-              <circle
-                cx="60"
-                cy="60"
-                r="48"
-                stroke="#F4B321"
-                strokeWidth="8"
-                fill="transparent"
-                strokeDasharray="302"
-                strokeDashoffset={progressOffset}
-                strokeLinecap="round"
-              />
-
-            </svg>
-
-            <div className="absolute inset-0 flex items-center justify-center">
-
-              <span className="text-5xl font-serif font-bold">
-                {progress}%
-              </span>
-
-            </div>
-
-          </div>
-                    {/* Course Information */}
-
-          <div className="flex-1 text-center lg:text-left">
-
-            <p className="uppercase tracking-[0.25em] text-xs sm:text-sm text-[#F4B321] font-bold">
-              Up Next
-            </p>
-
-            <h2 className="font-serif text-2xl sm:text-4xl lg:text-6xl mt-3 font-bold capitalize leading-tight">
-              {currentCourse?.title || "No Published Courses"}
-            </h2>
-
-            <div className="mt-6 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-base sm:text-lg">
-
-              <div className="flex items-center gap-2">
-
-                <BookOpen
-                  size={20}
-                  className="text-[#F4B321]"
-                />
-
-                <span>
-                  {currentCourse?.totalLessons || 0} Lessons
-                </span>
-
-              </div>
-
-              <div className="flex items-center gap-2">
-
-                <Clock3
-                  size={20}
-                  className="text-[#F4B321]"
-                />
-
-                <span>
-                  {currentCourse?.duration || "Self-paced"}
-                </span>
-
-              </div>
-
-            </div>
-
-          <button
-  onClick={() => {
-    if (currentCourse?.id) {
-      navigate(`/student/courses/${currentCourse.id}`);
-    }
-  }}
-  disabled={!currentCourse}
-  className="mt-8 bg-white text-[#134F73] rounded-full px-8 py-4 flex items-center gap-3 font-semibold hover:scale-105 transition mx-auto lg:mx-0 disabled:opacity-50"
->
-  <Play size={18} fill="#134F73" />
-  Browse Courses
-</button>
-          </div>
-
+      {allCourses.length === 0 ? (
+        <div className="bg-white rounded-3xl border border-gray-200 p-10 text-center">
+          <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
+          <p className="text-gray-500 text-lg">No courses available yet.</p>
+          <p className="text-gray-400 text-sm mt-1">Check back soon for new courses.</p>
         </div>
+      ) : (
+        <div className="space-y-6">
+          {allCourses.map((course) => {
+            const courseId = course.id;
+            const enrolled = isEnrolled(courseId);
+            const enrollment = getEnrollment(courseId);
 
-      </div>
+            // FIX: Use backend progress from enrollment
+            const progress = Math.round(enrollment?.progressPercentage || enrollment?.ProgressPercentage || 0);
+            const status = (enrollment?.status || enrollment?.Status || "").toLowerCase();
+            const isCompleted = status === "completed";
+            const isActive = status === "active";
+            const isLocked = status === "locked";
 
-      {/* Main Content */}
+            // FIX: Use correct field names from backend CourseResponse
+            // Backend returns TotalModules / TotalLessons (PascalCase -> camelCase in JSON)
+            const moduleCount = course.totalModules ?? course.TotalModules ?? course.modules?.length ?? course.moduleCount ?? 0;
+            const lessonCount = course.totalLessons ?? course.TotalLessons ?? course.lessonCount ?? 0;
+            const hasContent = moduleCount > 0 || lessonCount > 0;
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-10">
-
-        {/* Left Side */}
-
-        <div className="lg:col-span-3">
-
-          <h2 className="font-serif text-4xl text-[#134F73] mb-8">
-            Your Activity
-          </h2>
-
-          <div className="grid grid-cols-2 gap-5">
-
-            {/* Lessons */}
-
-            <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-6">
-
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center mb-5">
-
-                <BookOpen
-                  size={20}
-                  className="text-[#134F73]"
-                />
-
-              </div>
-
-              <h3 className="text-5xl font-serif text-[#134F73]">
-                {completedLessons}
-              </h3>
-
-              <p className="uppercase tracking-[0.25em] text-xs text-slate-500 mt-3 leading-5">
-                Lessons
-                <br />
-                Completed
-              </p>
-
-            </div>
-
-            {/* Journal */}
-
-            <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-6">
-
-              <div className="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
-
-                <PencilLine
-                  size={20}
-                  className="text-[#F47A20]"
-                />
-
-              </div>
-
-              <h3 className="text-5xl font-serif text-[#134F73]">
-                {journalEntries}
-              </h3>
-
-              <p className="uppercase tracking-[0.25em] text-xs text-slate-500 mt-3 leading-5">
-                Journal
-                <br />
-                Entries
-              </p>
-
-            </div>
-
-          </div>
-
-          {/* Upcoming Call */}
-
-          <div className="bg-white rounded-3xl shadow-md border border-slate-100 p-7 mt-6">
-
-            <div className="flex items-center gap-3 mb-5">
-
-              <CalendarDays
-                size={20}
-                className="text-[#134F73]"
-              />
-
-              <h3 className="font-serif text-2xl text-[#134F73]">
-                Upcoming Live Call
-              </h3>
-
-            </div>
-
-            <h4 className="font-semibold text-xl text-[#134F73]">
-              Group Coaching: Alignment
-            </h4>
-
-            <p className="text-slate-500 mt-3">
-              Tomorrow, 2:00 PM GMT
-            </p>
-
-            <button className="w-full mt-6 rounded-2xl border border-slate-200 py-3 font-medium hover:bg-slate-50 transition">
-
-              Add to Calendar
-
-            </button>
-
-          </div>
-
-        </div>
-
-        {/* Right Side */}
-
-        <div className="lg:col-span-9">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
-
-            <h2 className="font-serif text-4xl lg:text-5xl text-[#134F73]">
-              Community Highlights
-            </h2>
-
-            <button
-              onClick={() => navigate("/student/community")}
-              className="self-start sm:self-auto text-[#F4B321] font-semibold hover:underline"
-            >
-              View All
-            </button>
-
-          </div>
-
-          <div className="bg-white rounded-3xl border border-slate-100 shadow-md overflow-hidden">
-
-            {communityPosts.map((post, index) => (
-
+            return (
               <div
-                key={post.id}
-                className={`flex gap-6 px-8 py-7 ${
-                  index !== communityPosts.length - 1
-                    ? "border-b border-slate-100"
-                    : ""
-                }`}
+                key={courseId}
+                className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6"
               >
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-6">
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-slate-900">
+                      {course.title}
+                    </h3>
+                    <p className="text-gray-400 text-sm mt-1">
+                      {course.instructor || course.instructorName || "KTA Learning Hub"}
+                    </p>
 
-                {/* Avatar */}
-
-                <div className="w-12 h-12 rounded-full bg-[#EEF3EF] flex items-center justify-center font-bold text-[#134F73] shrink-0">
-                  {post.initials}
-                </div>
-
-                {/* Content */}
-
-                <div className="flex-1">
-
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-
-                    <h4 className="font-bold text-xl text-[#134F73]">
-                      {post.name}
-                    </h4>
-
-                    <span className="text-slate-400 text-sm">
-                      {post.time}
-                    </span>
-
-                  </div>
-
-                  <p className="text-slate-600 leading-8 mt-4 text-lg">
-                    {post.message}
-                  </p>
-
-                </div>
-
-              </div>
-
-            ))}
-
-          </div>
-
-          {/* Published Courses */}
-
-          <div className="mt-10">
-
-            <div className="flex items-center justify-between mb-6">
-
-              <h2 className="font-serif text-4xl text-[#134F73]">
-                Published Courses
-              </h2>
-
-              <button
-                onClick={() => navigate("/student/courses")}
-                className="text-[#F4B321] font-semibold hover:underline"
-              >
-                View All
-              </button>
-
-            </div>
-
-            {coursesList.length === 0 ? (
-
-              <div className="bg-white rounded-3xl border border-slate-100 p-12 text-center shadow">
-
-                <BookOpen
-                  className="mx-auto text-[#134F73]"
-                  size={52}
-                />
-
-                <h3 className="mt-6 text-2xl font-semibold text-[#134F73]">
-                  No Published Courses
-                </h3>
-
-                <p className="mt-3 text-slate-500">
-                  Your administrator has not published any courses yet.
-                </p>
-
-              </div>
-
-            ) : (
-
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {coursesList.map((course) => (
-                  <div
-                    key={course.id}
-                    className="bg-white rounded-3xl shadow-md border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300"
-                  >
-                    {/* Thumbnail */}
-
-                    <div className="h-48 bg-slate-200 overflow-hidden">
-                      {course.thumbnailUrl ? (
-                        <img
-                          src={course.thumbnailUrl}
-                          alt={course.title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-[#134F73] text-white text-5xl font-bold">
-                          <BookOpen size={48} />
+                    <div className="flex items-center gap-3 mt-4 flex-wrap">
+                      {!enrolled && (
+                        <div className="flex items-center gap-2 bg-slate-100 px-4 py-2 rounded-full text-gray-500">
+                          <Lock size={16} />
+                          <span className="font-medium">Locked</span>
                         </div>
                       )}
-                    </div>
-
-                    {/* Card Body */}
-
-                    <div className="p-6">
-
-                      <span className="inline-block bg-[#F4B321]/20 text-[#134F73] text-xs font-semibold px-3 py-1 rounded-full">
-                        {course.category || "General"}
-                      </span>
-
-                      <h3 className="mt-4 text-2xl font-serif font-bold text-[#134F73] line-clamp-2">
-                        {course.title}
-                      </h3>
-
-                      <p className="mt-3 text-slate-600 line-clamp-3">
-                        {course.description}
-                      </p>
-
-                      <div className="mt-6 space-y-2 text-sm text-slate-500">
-
-                        <div className="flex justify-between">
-                          <span>Duration</span>
-                          <span className="font-medium text-[#134F73]">
-                            {course.duration || "Self-paced"}
-                          </span>
+                      {enrolled && isLocked && (
+                        <div className="flex items-center gap-2 bg-amber-50 px-4 py-2 rounded-full text-amber-600">
+                          <Lock size={16} />
+                          <span className="font-medium">Payment Required</span>
                         </div>
-
-                        <div className="flex justify-between">
-                          <span>Level</span>
-                          <span className="font-medium text-[#134F73]">
-                            {course.level || "Beginner"}
-                          </span>
+                      )}
+                      {enrolled && isActive && (
+                        <div className="flex items-center gap-2 bg-green-50 px-4 py-2 rounded-full text-green-600">
+                          <CheckCircle2 size={16} />
+                          <span className="font-medium">Active</span>
                         </div>
-
-                        <div className="flex justify-between">
-                          <span>Lessons</span>
-                          <span className="font-medium text-[#134F73]">
-                            {course.totalLessons || 0}
-                          </span>
+                      )}
+                      {enrolled && isCompleted && (
+                        <div className="flex items-center gap-2 bg-blue-50 px-4 py-2 rounded-full text-blue-600">
+                          <CheckCircle2 size={16} />
+                          <span className="font-medium">Completed</span>
                         </div>
-
-                        <div className="flex justify-between">
-                          <span>Modules</span>
-                          <span className="font-medium text-[#134F73]">
-                            {course.totalModules || 0}
-                          </span>
-                        </div>
-
+                      )}
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <Layers size={13} />
+                        {moduleCount} modules
                       </div>
-
-                      <button
-                        onClick={() =>
-                          navigate(`/student/courses/${course.id}`)
-                        }
-                        className="mt-6 w-full bg-[#134F73] text-white py-3 rounded-xl font-semibold hover:bg-[#0f415f] transition"
-                      >
-                        View Course
-                      </button>
-
+                      <span className="text-gray-300">·</span>
+                      <div className="flex items-center gap-1 text-xs text-gray-500">
+                        <PlayCircle size={13} />
+                        {lessonCount} lessons
+                      </div>
+                      <span className="text-gray-300">·</span>
+                      <span className="text-xl text-gray-500">
+                        ₦{(course.price || 0).toLocaleString()}
+                      </span>
+                      {!hasContent && (
+                        <span className="ml-2 px-2 py-0.5 rounded-md bg-amber-50 text-amber-600 text-xs font-medium">
+                          Content coming soon
+                        </span>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
 
-          </div>
+                  {!enrolled ? (
+                    <button
+                      onClick={() => initiatePayment(course)}
+                      disabled={paymentLoading}
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition shrink-0 flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <Lock size={18} />
+                      {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Unlock Course"}
+                    </button>
+                  ) : isLocked ? (
+                    <button
+                      onClick={() => initiatePayment(course)}
+                      disabled={paymentLoading}
+                      className="bg-[#E79B23] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#C87E08] transition shrink-0 flex items-center gap-2 disabled:opacity-50"
+                    >
+                      <Lock size={18} />
+                      {paymentLoading && selectedCourse?.id === course.id ? "Processing..." : "Complete Payment"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => navigate(`/student/courses/${courseId}`)}
+                      className="bg-[#0F66B7] text-white px-8 py-3 rounded-2xl font-semibold hover:bg-[#09539a] transition shrink-0 flex items-center gap-2"
+                    >
+                      {progress > 0 ? "Continue Learning" : "Start Learning"}
+                      <ArrowRight size={18} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Progress - show for all enrolled courses that are not locked */}
+                {enrolled && !isLocked && (
+                  <div className="mt-6">
+                    <div className="flex justify-between text-sm text-gray-500 mb-2">
+                      <span>Progress</span>
+                      <span>{progress}%</span>
+                    </div>
+                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-[#0F66B7] rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
                   </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
-      </div>
-
+      {/* Success Toast */}
+      {paymentSuccess && (
+        <div className="fixed top-6 right-6 bg-green-600 text-white px-6 py-4 rounded-2xl shadow-xl z-50 flex items-center gap-2">
+          <CheckCircle2 size={18} />
+          Payment Successful! Course unlocked.
+        </div>
+      )}
     </div>
   );
 }
-  

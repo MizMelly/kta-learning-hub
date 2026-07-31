@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-import ResourcesHero from "../Resources/ResourcesHero";
-import ResourceFilters from "../Resources/ResourceFilters";
-import FeaturedResource from "../Resources/FeaturedResource";
-import ResourcesGrid from "../Resources/ResourcesGrid";
-import Navbar from "../Navbar";
-import Footer from "../Footer";
+import ResourcesHero from "../components/Resources/ResourcesHero";
+import ResourceFilters from "../components/Resources/ResourceFilters";
+import FeaturedResource from "../components/Resources/FeaturedResource";
+import ResourcesGrid from "../components/Resources/ResourcesGrid";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 export default function Resources() {
   const [activeCategory, setActiveCategory] = useState("All");

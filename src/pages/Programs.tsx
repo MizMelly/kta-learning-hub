@@ -1,11 +1,11 @@
 import { useState } from "react";
 
-import ProgramsHero from "../Programs/ProgramsHero";
-import ProgramFilters from "../Programs/ProgramFilters";
-import ProgramsGrid from "../Programs/ProgramsGrid";
-import ProgramsCTA from "../Programs/ProgramsCTA";
-import Navbar from "../Navbar";
-import Footer from "../Footer";
+import ProgramsHero from "../components/Programs/ProgramsHero";
+import ProgramFilters from "../components/Programs/ProgramFilters";
+import ProgramsGrid from "../components/Programs/ProgramsGrid";
+import ProgramsCTA from "../components/Programs/ProgramsCTA";
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 
 
 export default function Programs() {

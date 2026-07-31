@@ -37,7 +37,7 @@ export default function Dashboard() {
           Dashboard
         </h1>
         <p className="mt-2 text-gray-500">
-          A snapshot of activity across the KTA Learning Hub.
+          A snapshot of activity across the Unleash Academy Learning Hub.
         </p>
       </div>
 
