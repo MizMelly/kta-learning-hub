@@ -1,15 +1,12 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Loader2,
   User,
-  Mail,
   BookOpen,
   CheckCircle2,
   Clock,
   MoreHorizontal,
-  Filter,
   Eye,
   Power,
   PowerOff,
@@ -22,7 +19,6 @@ import {
 import { admin } from "../../services/api";
 
 export default function Students() {
-  const navigate = useNavigate();
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +27,7 @@ export default function Students() {
   const [openMenu, setOpenMenu] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  const fetchStudents = async () => {
+  const fetchStudents = useCallback(async () => {
     try {
       setLoading(true);
       const res = await admin.getStudents();
@@ -42,11 +38,15 @@ export default function Students() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchStudents();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void fetchStudents();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchStudents]);
 
   // Close menu when clicking outside
   useEffect(() => {

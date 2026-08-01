@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { ArrowRight } from "lucide-react";
 import logo from "../../../assets/logo.png";
-import { auth } from "../../../services/api";
+import { auth, saveAuth } from "../../../services/api";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -36,14 +36,7 @@ export default function Login() {
     try {
       const response = await auth.login(form);
 
-      // Save JWT
-      localStorage.setItem("kta_token", response.token);
-
-      // Save user if you need it later
-      localStorage.setItem(
-        "kta_user",
-        JSON.stringify(response.user)
-      );
+      saveAuth(response);
 
       // Redirect
       navigate("/dashboard");

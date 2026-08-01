@@ -1,10 +1,12 @@
-import { Lock, ShieldCheck, X, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, Clock, ArrowRight } from "lucide-react";
+import { Lock, Loader2, BookOpen, Layers, PlayCircle, CheckCircle2, ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, enrollments, courses } from "../../services/api";
 import { useFlutterwave, closePaymentModal } from "flutterwave-react-v3";
 
 const FLW_PUBLIC_KEY = "FLWPUBK_TEST-51090b4aa0ebefc8f37b147d7176fa8a-X";
+
+const createFlutterwaveTxRef = () => `kta-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -67,7 +69,7 @@ export default function StudentDashboard() {
 
     const config = {
       public_key: FLW_PUBLIC_KEY,
-      tx_ref: "kta-" + Date.now(),
+      tx_ref: createFlutterwaveTxRef(),
       amount: course.price || 0,
       currency: "NGN",
       payment_options: "card,mobilemoney,ussd,banktransfer",
@@ -147,7 +149,7 @@ export default function StudentDashboard() {
     };
 
     processPayment();
-  }, [flutterwaveConfig]);
+  }, [flutterwaveConfig, handleFlutterwavePayment, paymentLoading, selectedCourse?.id]);
 
   if (loading) {
     return (

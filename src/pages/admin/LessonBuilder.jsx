@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Video, FileText, Headphones, ClipboardList, MessageCircle, Star,
@@ -22,7 +22,6 @@ export default function LessonBuilder() {
   const { lessonId } = useParams();
   const navigate = useNavigate();
 
-  const [lesson, setLesson] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("info");
@@ -67,13 +66,10 @@ export default function LessonBuilder() {
   const [uploading, setUploading] = useState({ video: false, audio: false, resource: false });
   const [uploadProgress, setUploadProgress] = useState({ video: 0, audio: 0, resource: 0 });
 
-  useEffect(() => { fetchLesson(); }, [lessonId]);
-
-  const fetchLesson = async () => {
+  const fetchLesson = useCallback(async () => {
     try {
       setLoading(true);
       const data = await apiRequest(`/lessons/${lessonId}`);
-      setLesson(data);
 
       // Info
       setInfo({
@@ -131,47 +127,62 @@ export default function LessonBuilder() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lessonId]);
+
+  useEffect(() => {
+    if (!lessonId) return;
+
+    const timeoutId = window.setTimeout(() => {
+      void fetchLesson();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchLesson, lessonId]);
 
   // ─── Upload with progress ────────────────────────────────────────────────
   const handleFileUpload = async (file, type) => {
     if (!file) return null;
+
     const uploadType = type === "resource" ? "document" : type;
-    const baseUrl = API_BASE || "https://kta-learning-hub-api.onrender.com/api";
+    const uploadUrl = `${API_BASE}/files/upload/${uploadType}`;
+    const token = getToken();
+
     setUploading((prev) => ({ ...prev, [type]: true }));
     setUploadProgress((prev) => ({ ...prev, [type]: 0 }));
 
     try {
-      const token = getToken();
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        xhr.upload.addEventListener("progress", (event) => {
-          if (event.lengthComputable) {
-            const percent = Math.round((event.loaded / event.total) * 100);
-            setUploadProgress((prev) => ({ ...prev, [type]: percent }));
-          }
-        });
-        xhr.addEventListener("load", () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const res = JSON.parse(xhr.responseText);
-              const unwrapped = res.data !== undefined ? res.data : res;
-              let url = unwrapped?.fileUrl || unwrapped?.url || unwrapped;
-              if (url && typeof url === "object") url = url.fileUrl || url.url;
-              if (url && typeof url === "string" && url.startsWith("/")) {
-                url = baseUrl.replace("/api", "") + url;
-              }
-              resolve(url);
-            } catch { resolve(xhr.responseText); }
-          } else { reject(new Error(`Upload failed (${xhr.status})`)); }
-        });
-        xhr.addEventListener("error", () => reject(new Error("Network error")));
-        xhr.open("POST", baseUrl + "/files/upload/" + uploadType);
-        if (token) xhr.setRequestHeader("Authorization", "Bearer " + token);
-        const formData = new FormData();
-        formData.append("file", file);
-        xhr.send(formData);
+      const formData = new FormData();
+      formData.append("file", file);
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body: formData,
       });
+
+      let payload = null;
+      try {
+        payload = await response.json();
+      } catch {
+        payload = await response.text();
+      }
+
+      if (!response.ok) {
+        const message = payload?.message || payload?.error || `Upload failed (${response.status})`;
+        throw new Error(message);
+      }
+
+      const unwrapped = payload?.data !== undefined ? payload.data : payload;
+      let url = unwrapped?.fileUrl || unwrapped?.url || unwrapped;
+      if (url && typeof url === "object") {
+        url = url.fileUrl || url.url;
+      }
+
+      if (typeof url === "string" && url.startsWith("/")) {
+        url = API_BASE.replace(/\/api$/, "") + url;
+      }
+
+      return url || null;
     } catch (err) {
       alert("Upload failed: " + (err.message || "Unknown error"));
       return null;

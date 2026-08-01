@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { lessons, courses, learning, discussions } from "../../services/api";
 import apiRequest from "../../services/api";
 import {
   Play,
-  ChevronLeft,
   CheckCircle2,
   Star,
   MessageCircle,
@@ -458,7 +457,7 @@ function DiscussionStep({ lessonId, onComplete }) {
   const [newComment, setNewComment] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       const data = await discussions.getByLesson(lessonId);
       setComments(Array.isArray(data) ? data : []);
@@ -468,11 +467,15 @@ function DiscussionStep({ lessonId, onComplete }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [lessonId]);
 
   useEffect(() => {
-    fetchComments();
-  }, [lessonId]);
+    const timeoutId = window.setTimeout(() => {
+      void fetchComments();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchComments]);
 
   const addComment = async () => {
     if (!newComment.trim()) return;
@@ -502,7 +505,7 @@ function DiscussionStep({ lessonId, onComplete }) {
         <p className="text-gray-400 text-sm mb-4">{comments.length} comment{comments.length !== 1 ? "s" : ""}</p>
 
         <div className="flex gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+          <div className="w-10 h-10 rounded-full bg-[#0F2D52] flex items-center justify-center text-white text-sm font-bold shrink-0">
             {(getCurrentUser()?.fullName || "S").charAt(0)}
           </div>
           <div className="flex-1">
@@ -531,7 +534,7 @@ function DiscussionStep({ lessonId, onComplete }) {
           <div className="space-y-4">
             {comments.map((comment) => (
               <div key={comment.id} className="flex gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-[#E79B23] flex items-center justify-center text-white font-bold text-sm shrink-0">
                   {(comment.studentName || comment.user?.fullName || comment.userName || "?").charAt(0)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -658,7 +661,7 @@ function RatingStep({ lessonId, existingRating, onComplete }) {
 }
 
 // ─── Step 8: Complete ────────────────────────────────────────────────────────
-function CompleteStep({ lesson, courseId, lessonId, onNextLesson, onDashboard }) {
+function CompleteStep({ lesson, onNextLesson, onDashboard }) {
   return (
     <div className="text-center py-12">
       <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
@@ -714,40 +717,36 @@ export default function LessonPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentStep, setCurrentStep] = useState(0);
-  const [progress, setProgress] = useState(null);
 
   // Fetch lesson and progress
-  const fetchLesson = async () => {
+  const fetchLesson = useCallback(async () => {
     try {
       setLoading(true);
-      const [lessonData, courseData, progressData] = await Promise.all([
+      const [lessonData, courseData] = await Promise.all([
         lessons.getStudentLesson(lessonId),
         courses.getById(courseId),
-        learning.getProgress(lessonId),
       ]);
       setLesson(lessonData);
       setCourse(courseData);
-      setProgress(progressData);
     } catch (err) {
       setError(err.message || "Failed to load lesson");
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId, lessonId]);
 
   useEffect(() => {
-    fetchLesson();
-  }, [lessonId, courseId]);
+    const timeoutId = window.setTimeout(() => {
+      void fetchLesson();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchLesson]);
 
   // Mark step complete and update progress
   const markStepComplete = async (step) => {
     try {
       await learning.complete(lessonId, { step });
-      // Update local progress
-      setProgress((prev) => ({
-        ...prev,
-        [`${step}Completed`]: true,
-      }));
     } catch (err) {
       console.error("Failed to mark step complete:", err);
     }

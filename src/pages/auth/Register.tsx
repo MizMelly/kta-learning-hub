@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { FcGoogle } from "react-icons/fc";
 import { ArrowRight } from "lucide-react";
 import logo from "../../../assets/logo.png";
-import { auth } from "../../../services/api";
+import { auth, saveAuth } from "../../../services/api";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -59,12 +59,7 @@ export default function Register() {
 
     console.log("Register Response:", response);
 
-    localStorage.setItem("kta_token", response.token);
-
-    localStorage.setItem(
-      "kta_user",
-      JSON.stringify(response.user)
-    );
+    saveAuth(response);
 
     navigate("/dashboard");
   } catch (err) {

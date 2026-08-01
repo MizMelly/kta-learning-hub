@@ -1,13 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Loader2,
   FileText,
   NotebookPen,
   CheckCircle2,
-  XCircle,
   Clock,
   Eye,
-  MessageSquare,
+  XCircle,
   Send,
 } from "lucide-react";
 import { learning } from "../../services/api";
@@ -34,7 +33,7 @@ export default function Submissions() {
   const [reviewStatus, setReviewStatus] = useState("Approved");
   const [saving, setSaving] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const res =
@@ -48,11 +47,15 @@ export default function Submissions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab]);
 
   useEffect(() => {
-    fetchData();
-  }, [activeTab]);
+    const timeoutId = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchData]);
 
   const handleReview = async () => {
     if (!reviewing) return;

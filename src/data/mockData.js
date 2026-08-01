@@ -609,7 +609,7 @@ function useLocalStorage(key, initialValue) {
 - Easier testing`,
             assignment: {
               instructions:
-                "Create a custom hook called \`useFetch\` that handles loading, error, and data states for any API endpoint. Use it in a component to fetch course data.",
+                "Create a custom hook called useFetch that handles loading, error, and data states for any API endpoint. Use it in a component to fetch course data.",
             },
             reflection: {
               prompt:

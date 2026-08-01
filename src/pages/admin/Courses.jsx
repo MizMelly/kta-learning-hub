@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Plus, Loader2, Trash2, ChevronRight, Globe, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { courses as coursesApi } from "../../services/api";
@@ -12,14 +12,11 @@ export default function Courses() {
   const [showCreate, setShowCreate] = useState(false);
   const [publishing, setPublishing] = useState({});
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      // FIX: Use getAllAdmin() to get ALL courses (draft + published), not just published
       const res = await coursesApi.getAllAdmin();
-      // Handle paginated response: { courses: [...], totalCount, page, pageSize }
-      // or direct array fallback
       const courses = res?.courses || res || [];
       setCourseList(Array.isArray(courses) ? courses : []);
     } catch (err) {
@@ -29,11 +26,15 @@ export default function Courses() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchCourses();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void fetchCourses();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchCourses]);
 
   const handleDelete = async (id) => {
     if (!confirm("Delete this course? This cannot be undone.")) return;

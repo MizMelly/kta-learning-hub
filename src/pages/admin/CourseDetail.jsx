@@ -1,12 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   Plus,
   Loader2,
-  Pencil,
   Trash2,
-  ChevronRight,
   BookOpen,
   Clock,
   Wrench,
@@ -25,7 +23,7 @@ export default function CourseDetail() {
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [adding, setAdding] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [courseRes, modulesRes] = await Promise.all([
@@ -39,11 +37,15 @@ export default function CourseDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [courseId]);
 
   useEffect(() => {
-    fetchData();
-  }, [courseId]);
+    const timeoutId = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchData]);
 
   const handleAddModule = async () => {
     if (!newModuleTitle.trim()) return;

@@ -1,9 +1,70 @@
 export const API_BASE = "https://kta-learning-hub-api.onrender.com/api";
 
+const AUTH_TOKEN_KEY = "kta_token";
+const AUTH_USER_KEY = "kta_user";
+
+const decodeJwtPayload = (token) => {
+  try {
+    const payload = token.split(".")[1];
+    if (!payload) return null;
+    const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(normalized));
+  } catch {
+    return null;
+  }
+};
+
+const isTokenExpired = (token) => {
+  const payload = decodeJwtPayload(token);
+  if (!payload?.exp) return false;
+  return Date.now() >= payload.exp * 1000;
+};
+
+export const clearAuth = () => {
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+  } catch {
+    // Ignore storage access errors in non-browser contexts
+  }
+};
+
+export const saveAuth = (payload) => {
+  const authData = payload?.data ?? payload;
+  const token = authData?.token || authData?.accessToken || authData?.jwt || authData?.access_token || authData?.authToken || null;
+  const user = authData?.user || authData?.profile || authData?.data?.user || null;
+
+  try {
+    if (token) {
+      localStorage.setItem(AUTH_TOKEN_KEY, token);
+    } else {
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+    }
+
+    if (user) {
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+    } else {
+      localStorage.removeItem(AUTH_USER_KEY);
+    }
+  } catch {
+    // Ignore storage access errors in non-browser contexts
+  }
+
+  return { token, user };
+};
+
 // Helper to get token from localStorage
 export const getToken = () => {
   try {
-    return localStorage.getItem("kta_token");
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) return null;
+
+    if (isTokenExpired(token)) {
+      clearAuth();
+      return null;
+    }
+
+    return token;
   } catch {
     return null;
   }
@@ -11,13 +72,14 @@ export const getToken = () => {
 
 async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
-
   const isFormData = options.body instanceof FormData;
+  const token = getToken();
+  const requiresAuth = !endpoint.startsWith("/auth/") && !endpoint.startsWith("/courses/published");
 
   const config = {
     headers: {
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
-      ...(getToken() ? { Authorization: `Bearer ${getToken()}` } : {}),
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...options.headers,
     },
     ...options,
@@ -37,6 +99,16 @@ async function apiRequest(endpoint, options = {}) {
   }
 
   if (!response.ok) {
+    if (response.status === 401) {
+      clearAuth();
+      throw new Error("Your session has expired. Please sign in again.");
+    }
+
+    if (!token && requiresAuth) {
+      clearAuth();
+      throw new Error("Authentication required. Please sign in again.");
+    }
+
     throw new Error(json?.message || `Request failed (${response.status})`);
   }
 

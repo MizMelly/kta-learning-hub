@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Loader2,
   MessageSquare,
@@ -15,7 +15,7 @@ import { discussions, courses } from "../../services/api";
 
 export default function Discussions() {
   const [comments, setComments] = useState([]);
-  const [courseList, setCourseList] = useState([]);
+  const [, setCourseList] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
@@ -23,7 +23,7 @@ export default function Discussions() {
   const [replyText, setReplyText] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [commentsRes, coursesRes] = await Promise.all([
@@ -39,11 +39,15 @@ export default function Discussions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    fetchData();
-  }, []);
+    const timeoutId = window.setTimeout(() => {
+      void fetchData();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [fetchData]);
 
   // FIX: Filter using correct backend field names
   const filteredComments = comments.filter((c) => {

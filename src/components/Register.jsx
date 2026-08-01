@@ -6,7 +6,7 @@ import {
   Loader2,
 } from "lucide-react";
 
-import { auth } from "../services/api";
+import { auth, saveAuth } from "../services/api";
 import logo from "../assets/logo.png";
 
 export default function Register() {
@@ -66,11 +66,7 @@ export default function Register() {
         confirmPassword: formData.confirmPassword,
       });
 
-      localStorage.setItem("kta_token", response.token);
-      localStorage.setItem(
-        "kta_user",
-        JSON.stringify(response.user)
-      );
+      saveAuth(response);
 
       navigate("/student/dashboard");
     } catch (err) {

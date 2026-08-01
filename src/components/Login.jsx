@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { auth } from "../services/api";
+import { auth, saveAuth } from "../services/api";
 import logo from "../assets/logo.png";
 
 const Login = () => {
@@ -25,8 +25,7 @@ const Login = () => {
         password,
       });
 
-      localStorage.setItem("kta_token", response.token);
-      localStorage.setItem("kta_user", JSON.stringify(response.user));
+      saveAuth(response);
 
       if (response.user.role === "Admin") {
         navigate("/admin");
