@@ -166,7 +166,7 @@ export default function StudentLayout() {
           duration-300
           flex
           flex-col
-          overflow-y-auto
+          overflow-hidden
           ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0
         `}
@@ -174,23 +174,23 @@ export default function StudentLayout() {
 
         {/* Logo */}
 
-        <div className="px-5 sm:px-8 py-6 sm:py-8 border-b border-slate-200">
+        <div className="px-4 py-4 border-b border-slate-200 shrink-0">
 
-          <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex items-center gap-2">
 
             <img
               src={logo}
               alt="Unleash Academy"
-              className="h-12 sm:h-14 w-auto"
+              className="h-9 w-auto"
             />
 
             <div>
 
-              <h2 className="text-2xl sm:text-3xl font-bold text-[#0F4D74] leading-none">
+              <h2 className="text-lg font-bold text-[#0F4D74] leading-none">
                 Unleash
               </h2>
 
-              <p className="text-[#F47A20] tracking-[0.25em] sm:tracking-[0.35em] text-xs sm:text-sm mt-1 sm:mt-2 uppercase">
+              <p className="text-[#F47A20] tracking-[0.15em] text-[10px] mt-0.5 uppercase">
                 Academy
               </p>
 
@@ -201,7 +201,7 @@ export default function StudentLayout() {
         </div>
                 {/* Navigation */}
 
-        <nav className="flex-1 px-4 sm:px-5 py-5 sm:py-8 space-y-3 sm:space-y-4 overflow-y-auto">
+        <nav className="flex-1 px-3 py-3 space-y-2 overflow-hidden flex flex-col">
 
           {navItems.map((item, index) => {
             const Icon = item.icon;
@@ -211,9 +211,9 @@ export default function StudentLayout() {
               return (
                 <div
                   key={index}
-                  className="flex items-center gap-3 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 font-semibold text-base sm:text-lg bg-[#134F73] text-white opacity-70 cursor-default select-none"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2.5 font-semibold text-sm bg-[#134F73] text-white opacity-70 cursor-default select-none"
                 >
-                  <Icon size={20} />
+                  <Icon size={18} />
                   <span>{item.label}</span>
                 </div>
               );
@@ -226,14 +226,14 @@ export default function StudentLayout() {
                 to={item.to}
                 onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 rounded-xl sm:rounded-2xl px-4 sm:px-5 py-3 sm:py-4 font-semibold text-base sm:text-lg transition-all duration-300 ${
+                  `flex items-center gap-2 rounded-lg px-3 py-2.5 font-semibold text-sm transition-all duration-300 ${
                     isActive
-                      ? "bg-[#134F73] text-white shadow-lg"
+                      ? "bg-[#134F73] text-white shadow-md"
                       : "bg-[#134F73] text-white hover:bg-[#0F4566]"
                   }`
                 }
               >
-                <Icon size={20} />
+                <Icon size={18} />
                 <span>{item.label}</span>
               </NavLink>
             );
@@ -243,21 +243,21 @@ export default function StudentLayout() {
 
         {/* Profile */}
 
-        <div className="border-t border-slate-200 p-4 sm:p-6">
+        <div className="border-t border-slate-200 p-3 shrink-0">
 
-          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-5">
+          <div className="flex items-center gap-2 mb-3">
 
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-[#134F73] text-white flex items-center justify-center text-lg sm:text-xl font-bold shrink-0">
+            <div className="w-10 h-10 rounded-full bg-[#134F73] text-white flex items-center justify-center text-sm font-bold shrink-0">
               {(user?.fullName || "S").charAt(0).toUpperCase()}
             </div>
 
             <div className="min-w-0 flex-1">
 
-              <h4 className="font-semibold text-[#134F73] text-sm sm:text-base truncate">
+              <h4 className="font-semibold text-[#134F73] text-xs truncate">
                 {user?.fullName || "Student"}
               </h4>
 
-              <p className="text-xs sm:text-sm text-slate-500 truncate">
+              <p className="text-[11px] text-slate-500 truncate">
                 {user?.email}
               </p>
 
@@ -267,9 +267,9 @@ export default function StudentLayout() {
 
           <button
             onClick={handleLogout}
-            className="w-full flex items-center justify-center gap-3 rounded-xl border border-slate-200 py-3 text-sm sm:text-base text-[#475569] hover:bg-red-50 hover:text-red-600 transition"
+            className="w-full flex items-center justify-center gap-2 rounded-lg border border-slate-200 py-2 text-xs text-[#475569] hover:bg-red-50 hover:text-red-600 transition"
           >
-            <LogOut size={18} />
+            <LogOut size={16} />
             Logout
           </button>
 
