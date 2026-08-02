@@ -142,8 +142,24 @@ export const courses = {
 // Modules
 export const modules = {
   getByCourse: (courseId) => apiRequest(`/modules/course/${courseId}`),
-  create: (body) => apiRequest("/modules", { method: "POST", body }),
-  update: (id, body) => apiRequest(`/modules/${id}`, { method: "PUT", body }),
+  create: (body) => apiRequest("/modules", {
+    method: "POST",
+    body: {
+      ...body,
+      ...(body?.orderIndex === undefined && body?.order !== undefined
+        ? { orderIndex: body.order }
+        : {}),
+    },
+  }),
+  update: (id, body) => apiRequest(`/modules/${id}`, {
+    method: "PUT",
+    body: {
+      ...body,
+      ...(body?.orderIndex === undefined && body?.order !== undefined
+        ? { orderIndex: body.order }
+        : {}),
+    },
+  }),
   delete: (id) => apiRequest(`/modules/${id}`, { method: "DELETE" }),
   reorder: (body) => apiRequest("/modules/reorder", { method: "PUT", body }),
 };
