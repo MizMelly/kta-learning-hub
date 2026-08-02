@@ -22,6 +22,7 @@ export default function CourseDetail() {
   const [showAddModule, setShowAddModule] = useState(false);
   const [newModuleTitle, setNewModuleTitle] = useState("");
   const [adding, setAdding] = useState(false);
+  const [buildingModuleId, setBuildingModuleId] = useState(null);
 
   const fetchData = useCallback(async () => {
     try {
@@ -83,6 +84,34 @@ export default function CourseDetail() {
       fetchData();
     } catch (err) {
       alert("Failed to delete: " + err.message);
+    }
+  };
+
+  const handleBuildModule = async (mod) => {
+    const existingLessons = mod.lessons || [];
+    if (existingLessons.length > 0) {
+      navigate(`/admin/lessons/${existingLessons[0].id}/builder`);
+      return;
+    }
+
+    try {
+      setBuildingModuleId(mod.id);
+      const lessonRes = await lessonsApi.create({
+        moduleId: mod.id,
+        title: `${mod.title} - Lesson 1`,
+        description: "",
+        duration: "10 min",
+        order: 1,
+      });
+      const createdLesson = lessonRes?.data || lessonRes;
+      if (!createdLesson?.id) {
+        throw new Error("Could not create starter lesson");
+      }
+      navigate(`/admin/lessons/${createdLesson.id}/builder`);
+    } catch (err) {
+      alert("Failed to open module builder: " + err.message);
+    } finally {
+      setBuildingModuleId(null);
     }
   };
 
@@ -213,18 +242,41 @@ export default function CourseDetail() {
                       </span>
                       <h3 className="font-semibold text-[#0B1F3A]">{mod.title}</h3>
                     </div>
-                    <button
-                      onClick={() => handleDeleteModule(mod.id)}
-                      className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleBuildModule(mod)}
+                        disabled={buildingModuleId === mod.id}
+                        className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#0F2D52] text-white text-xs font-medium hover:bg-[#1E4A7A] transition disabled:opacity-50"
+                      >
+                        {buildingModuleId === mod.id ? (
+                          <Loader2 size={14} className="animate-spin" />
+                        ) : (
+                          <Wrench size={14} />
+                        )}
+                        {mod.lessons?.length ? "Build Module" : "Start Module"}
+                      </button>
+                      <button
+                        onClick={() => handleDeleteModule(mod.id)}
+                        className="p-2 rounded-xl hover:bg-red-50 text-red-500 transition"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Lessons */}
                   <div className="p-5 pt-0">
                     {mod.lessons?.length === 0 ? (
-                      <p className="text-sm text-slate-400 py-3">No lessons yet.</p>
+                      <div className="flex items-center justify-between py-3">
+                        <p className="text-sm text-slate-400">No lessons yet.</p>
+                        <button
+                          onClick={() => handleBuildModule(mod)}
+                          disabled={buildingModuleId === mod.id}
+                          className="text-xs font-semibold text-[#0F2D52] hover:underline disabled:opacity-50"
+                        >
+                          {buildingModuleId === mod.id ? "Creating lesson..." : "Create first lesson & build"}
+                        </button>
+                      </div>
                     ) : (
                       <div className="space-y-2 mt-3">
                         {mod.lessons.map((lesson) => (
