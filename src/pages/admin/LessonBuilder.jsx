@@ -102,7 +102,7 @@ export default function LessonBuilder() {
         submissionType: data.assignmentSubmissionType || "Both",
       });
 
-      // Reflection
+      // Reflectio
       setReflection({
         enableReflection: data.enableReflection || false,
         allowTextReflection: data.allowTextReflection !== false,
